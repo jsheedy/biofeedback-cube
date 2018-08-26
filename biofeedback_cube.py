@@ -1,33 +1,51 @@
-from datetime import datetime
-import struct
-import time
+#!/usr/bin/env python
 
-from Adafruit_PureIO.smbus import SMBus
+import argparse
+import asyncio
 
-from utils import bytes_to_str
+import numpy as np
 
+from pythonosc import udp_client
 
-HEART_ADDR = 0x09
+import pulse_sensor
 
-bus = SMBus(1)
+SAMPLING_DELAY = 1/20
 
-spinners = ("\\","|","/","-")
-fname = "heartrate-" + datetime.now().isoformat()[:19] + ".txt"
-i = 0
+client = udp_client.SimpleUDPClient('192.168.0.255', 37337, allow_broadcast=True)
+# client = udp_client.SimpleUDPClient('localhost', 37337)
 
-with open(fname, 'w') as f:
-	print("collecting heartbeat data . . . ")
+def parse_args():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--ip", default="0.0.0.0", help="The ip to listen on")
+	args = parser.parse_args()
+	return args
+
+def normalize(x):
+	normal = np.clip((x - 350) / 300 , 0, 1);
+	return normal
+	
+# async def pulse():
+@asyncio.coroutine
+def pulse():
 	while True:
-		raw_data = bus.read_bytes(HEART_ADDR, 2)
-		val = struct.unpack('h', raw_data)[0]
-		s = bytes_to_str(raw_data[0], raw_data[1])
-		# print(s + " | " + str(val))
-		f.write(",".join([str(time.time()), str(val)]) + "\n")
-		if i % 30 == 0:
-			f.flush()
-		time.sleep(33/1000)  # timing here is super sensitive
+		x = pulse_sensor.read()
+		# x = pulse_sensor.latest()
+		print(x)
+		# x = x[0]
+		client.send_message("/pulse", normalize(x))
+		yield from asyncio.sleep(SAMPLING_DELAY)
+		# await asyncio.sleep(SAMPLING_DELAY)
 
-		char = spinners[i%4]
-		print('\b'*3 + "["+char+"]",end='',flush=True)
-		i += 1
 
+def main():
+	args = parse_args()
+	loop = asyncio.get_event_loop()
+
+	asyncio.async(pulse())
+	# asyncio.async(pulse_sensor.pulse())
+	# loop.call_soon(pulse, loop)
+
+	loop.run_forever()
+
+if __name__ == "__main__":
+	main()
