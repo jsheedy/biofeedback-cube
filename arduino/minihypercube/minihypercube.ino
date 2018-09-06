@@ -26,18 +26,24 @@ void faceColor(int face, const struct CRGB & color) {
 
 int count = 0;
 
-void fadeIn(int delay) {
-  for (int i=0; i<256; i++) {
+void fadeIn(int delay, int inc) {
+  for (int i=0; i<256; i+=inc) {
     FastLED.setBrightness(dim8_raw(i));
     FastLED.delay(delay);
   }
 }
+void fadeIn(int delay) {
+  fadeIn(delay, 1);
+}
 
-void fadeOut(int delay) {
-  for (int i=255; i>0; i--) {
+void fadeOut(int delay, int inc) {
+  for (int i=255; i>0; i-=inc) {
     FastLED.setBrightness(dim8_raw(i));
     FastLED.delay(delay);
   } 
+}
+void fadeOut(int delay) {
+  fadeOut(delay, 1);
 }
 
 #define SIDE_0 0
@@ -52,35 +58,91 @@ void bomb() {
   FastLED.delay(random(0,100));
 }
 
-void loop() {
-//  switch(random(0,6)) {
-//    case 0:
-//      hueRotate();
-//      break;
-//    case 1:
-//      faceRotate();
-//      break;
-//    case 2:
-//      glitchDiscoCube();
-//      break;
-//    case 3:
-//      spotlight();
-//      break;
-//  }
-
-//  if (millis() % 200 ==0) {
-//    bomb();
-//  }
-
-  fill_solid( &(leds[0]), NUM_LEDS, CRGB(255,255,255));
-  fadeIn(20);
-  fadeOut(20);
-  FastLED.setBrightness(255);
+void rainbow() {
   faceColor(SIDE_0, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_1, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_2, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_3, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_4, CHSV(random(0,256), 255, 255));
-  faceColor(SIDE_5, CHSV(random(0,256), 255, 255));
-  FastLED.delay(300);
+  faceColor(SIDE_5, CHSV(random(0,256), 255, 255)); 
+}
+
+void faceChase() {
+  for (int i=0; i < 256; i+=7) {
+    FastLED.clear();
+    faceColor(i%3, CHSV(i, 255, 255));
+    FastLED.delay(150);
+  }
+}
+
+void heartBeat() {
+  CRGB color = CRGB(245,20,20);
+  FastLED.setBrightness(0);
+  fill_solid( &(leds[0]), NUM_LEDS, color);
+  fadeIn(0,2);
+  fadeOut(1,2);
+  color = CRGB(255,0,0);
+  fill_solid( &(leds[0]), NUM_LEDS, color);
+
+  fadeIn(0,2);
+//  fadeOut(3);
+  for (int i=255; i>40; i--) {
+    color = CHSV(0, i, i);
+    fill_solid( &(leds[0]), NUM_LEDS, color);
+    FastLED.setBrightness(dim8_raw(i));
+    FastLED.delay(3);
+  }
+  
+  for (int i=0; i<200; i++ ){
+
+    for (int j=0; j<NUM_LEDS; j++ ){
+      leds[j] = CHSV(sin8(j*10+i), 255,i);
+    }
+    FastLED.delay(2);
+  }
+
+}
+
+void heartBeats(int count) {
+  for (int i=0; i<count; i++) {
+    heartBeat();
+  }
+}
+
+void dawn() {
+  fadeOut(5);
+  fill_solid( &(leds[0]), NUM_LEDS, CRGB(255,255,255));
+  fadeIn(20);
+  fadeOut(10);
+}
+
+void loop() {
+  heartBeats(10);
+  FastLED.setBrightness(255);
+
+  switch(random(0,30)) {
+    case 0:
+      hueRotate();
+      break;
+    case 1:
+      faceRotate();
+      break;
+    case 2:
+      glitchDiscoCube();
+      break;
+    case 3:
+      spotlight();
+      break;
+    case 4:
+      dawn();
+      break;
+    case 5:
+      rainbow();
+      break;
+    case 6:
+      faceChase();
+      break;
+  }
+
+  FastLED.delay(random(0,2000));
 }
