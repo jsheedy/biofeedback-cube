@@ -12,8 +12,6 @@ void setup() {
   // APA102 is dotstars https://github.com/FastLED/FastLED/wiki/Chipset-reference
   FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
   // FastLED.addLeds<APA102, BGR>(leds, NUM_LEDS);
-//  Serial.begin(9600);
-//  Serial.println('woot');
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 }
@@ -76,40 +74,29 @@ void faceChase() {
 }
 
 void heartBeat() {
-  CRGB color = CHSV(0, 255, 255);
+  FastLED.setBrightness(0);
+  CRGB color = CHSV(10, 255, 255);
   fill_solid( &(leds[0]), NUM_LEDS, color);
 
-//glitch
   fadeIn(0,2);
   fadeOut(0,2);
+  color = CHSV(0, 255, 255);
   fill_solid( &(leds[0]), NUM_LEDS, color);
-
   fadeIn(0,2);
-  long t0 = millis();
-  long dt = 1500;
-  long end = t0 + dt;
-  while(millis() < end) {
-    fract8 fract = (millis() - t0) * 256 / dt;
+  
+  unsigned long t0 = millis();
+  unsigned long t1 = 0;
+  unsigned long dt = 1500;
+  unsigned long end = t0 + dt;
+  
+  while(t1 < dt) {
+    fract8 fract = t1 * 256 / dt;
     byte s = lerp8by8(255,0,fract);
-    color = CHSV(0, s, dim8_raw(s));
+    color = CHSV(fract / 2, s, dim8_raw(s));
     fill_solid( &(leds[0]), NUM_LEDS, color);
     FastLED.show();
+    t1 = millis() - t0;
   }
-//  
-//  for (int i=255; i>0; i--) {
-//    if (i > 40) {
-//      color = CHSV(0, i, 255);
-//      fill_solid( &(leds[0]), NUM_LEDS, color);
-//      FastLED.setBrightness(i);
-//      FastLED.delay(5);
-//    } else {
-//      FastLED.setBrightness(i);
-//      FastLED.delay(20);
-//    }
-//  }
-
-
-  
 }
 
 void heartBeats(int count) {
@@ -127,7 +114,7 @@ void dawn() {
 
 void loop() {
   heartBeats(1);
-  FastLED.setBrightness(255);
+  FastLED.delay(random8());
 
 //  switch(random(0,7)) {
 //    case 0:
