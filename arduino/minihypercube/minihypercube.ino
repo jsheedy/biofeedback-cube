@@ -12,8 +12,8 @@ void setup() {
   // APA102 is dotstars https://github.com/FastLED/FastLED/wiki/Chipset-reference
   FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
   // FastLED.addLeds<APA102, BGR>(leds, NUM_LEDS);
-  Serial.begin(9600);
-  Serial.println('woot');
+//  Serial.begin(9600);
+//  Serial.println('woot');
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 }
@@ -40,7 +40,7 @@ void fadeOut(int delay, int inc) {
   for (int i=255; i>0; i-=inc) {
     FastLED.setBrightness(dim8_raw(i));
     FastLED.delay(delay);
-  } 
+  }
 }
 void fadeOut(int delay) {
   fadeOut(delay, 1);
@@ -64,7 +64,7 @@ void rainbow() {
   faceColor(SIDE_2, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_3, CHSV(random(0,256), 255, 255));
   faceColor(SIDE_4, CHSV(random(0,256), 255, 255));
-  faceColor(SIDE_5, CHSV(random(0,256), 255, 255)); 
+  faceColor(SIDE_5, CHSV(random(0,256), 255, 255));
 }
 
 void faceChase() {
@@ -76,49 +76,40 @@ void faceChase() {
 }
 
 void heartBeat() {
-  
-//  CRGB color = CRGB(245,20,20);
   CRGB color = CHSV(0, 255, 255);
-
-//  FastLED.setBrightness(0);
   fill_solid( &(leds[0]), NUM_LEDS, color);
-//  fadeIn(0,2);
-//  fadeOut(1,2);
-//  
-//  color = CRGB(255,0,255);
-//  fill_solid( &(leds[0]), NUM_LEDS, color);
-//  fadeIn(0,2);
-//  fadeOut(3);
-  
+
 //glitch
   fadeIn(0,2);
   fadeOut(0,2);
   fill_solid( &(leds[0]), NUM_LEDS, color);
 
   fadeIn(0,2);
-  for (int i=255; i>0; i--) {
-    if (i > 40) {
-      color = CHSV(0, i, 255);
-      fill_solid( &(leds[0]), NUM_LEDS, color);
-      FastLED.setBrightness(i);
-  //        FastLED.setBrightness(dim8_raw(i));
-  //
-      FastLED.delay(5);  
-    } else {
-      FastLED.setBrightness(i);
-      FastLED.delay(20);
-    }
-    
+  long t0 = millis();
+  long dt = 1500;
+  long end = t0 + dt;
+  while(millis() < end) {
+    fract8 fract = (millis() - t0) * 256 / dt;
+    byte s = lerp8by8(255,0,fract);
+    color = CHSV(0, s, dim8_raw(s));
+    fill_solid( &(leds[0]), NUM_LEDS, color);
+    FastLED.show();
   }
-  //glitch
-//  for (int i=0; i<200; i++ ){
-//
-//    for (int j=0; j<NUM_LEDS; j++ ){
-//      leds[j] = CHSV(sin8(j*10+i), 255,i);
+//  
+//  for (int i=255; i>0; i--) {
+//    if (i > 40) {
+//      color = CHSV(0, i, 255);
+//      fill_solid( &(leds[0]), NUM_LEDS, color);
+//      FastLED.setBrightness(i);
+//      FastLED.delay(5);
+//    } else {
+//      FastLED.setBrightness(i);
+//      FastLED.delay(20);
 //    }
-//    FastLED.delay(4);
 //  }
 
+
+  
 }
 
 void heartBeats(int count) {
