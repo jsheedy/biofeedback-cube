@@ -76,30 +76,48 @@ void faceChase() {
 }
 
 void heartBeat() {
-  CRGB color = CRGB(245,20,20);
-  FastLED.setBrightness(0);
-  fill_solid( &(leds[0]), NUM_LEDS, color);
-  fadeIn(0,2);
-  fadeOut(1,2);
-  color = CRGB(255,0,0);
-  fill_solid( &(leds[0]), NUM_LEDS, color);
-
-  fadeIn(0,2);
-//  fadeOut(3);
-  for (int i=255; i>40; i--) {
-    color = CHSV(0, i, i);
-    fill_solid( &(leds[0]), NUM_LEDS, color);
-    FastLED.setBrightness(dim8_raw(i));
-    FastLED.delay(3);
-  }
   
-  for (int i=0; i<200; i++ ){
+//  CRGB color = CRGB(245,20,20);
+  CRGB color = CHSV(0, 255, 255);
 
-    for (int j=0; j<NUM_LEDS; j++ ){
-      leds[j] = CHSV(sin8(j*10+i), 255,i);
+//  FastLED.setBrightness(0);
+  fill_solid( &(leds[0]), NUM_LEDS, color);
+//  fadeIn(0,2);
+//  fadeOut(1,2);
+//  
+//  color = CRGB(255,0,255);
+//  fill_solid( &(leds[0]), NUM_LEDS, color);
+//  fadeIn(0,2);
+//  fadeOut(3);
+  
+//glitch
+  fadeIn(0,2);
+  fadeOut(0,2);
+  fill_solid( &(leds[0]), NUM_LEDS, color);
+
+  fadeIn(0,2);
+  for (int i=255; i>0; i--) {
+    if (i > 40) {
+      color = CHSV(0, i, 255);
+      fill_solid( &(leds[0]), NUM_LEDS, color);
+      FastLED.setBrightness(i);
+  //        FastLED.setBrightness(dim8_raw(i));
+  //
+      FastLED.delay(5);  
+    } else {
+      FastLED.setBrightness(i);
+      FastLED.delay(20);
     }
-    FastLED.delay(2);
+    
   }
+  //glitch
+//  for (int i=0; i<200; i++ ){
+//
+//    for (int j=0; j<NUM_LEDS; j++ ){
+//      leds[j] = CHSV(sin8(j*10+i), 255,i);
+//    }
+//    FastLED.delay(4);
+//  }
 
 }
 
@@ -117,32 +135,32 @@ void dawn() {
 }
 
 void loop() {
-  heartBeats(10);
+  heartBeats(1);
   FastLED.setBrightness(255);
 
-  switch(random(0,30)) {
-    case 0:
-      hueRotate();
-      break;
-    case 1:
-      faceRotate();
-      break;
-    case 2:
-      glitchDiscoCube();
-      break;
-    case 3:
-      spotlight();
-      break;
-    case 4:
-      dawn();
-      break;
-    case 5:
-      rainbow();
-      break;
-    case 6:
-      faceChase();
-      break;
-  }
+//  switch(random(0,7)) {
+//    case 0:
+//      hueRotate();
+//      break;
+//    case 1:
+//      faceRotate();
+//      break;
+//    case 2:
+//      glitchDiscoCube();
+//      break;
+//    case 3:
+//      spotlight();
+//      break;
+//    case 4:
+//      dawn();
+//      break;
+//    case 5:
+//      rainbow();
+//      break;
+//    case 6:
+//      faceChase();
+//      break;
+//  }
 
-  FastLED.delay(random(0,2000));
+//  FastLED.delay(random(0,200));
 }
