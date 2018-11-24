@@ -14,7 +14,7 @@ from pythonosc import osc_server
 from dotstar import Adafruit_DotStar
 
 
-numpixels = 144*1 # Number of LEDs in strip
+numpixels = 544 # 149*1 # Number of LEDs in strip
 IDLE_TIME = 2
 
 strip    = Adafruit_DotStar()
@@ -31,7 +31,9 @@ last_osc = datetime.now() - timedelta(seconds=IDLE_TIME)
 @asyncio.coroutine
 def looper():
 
-	A = .05
+	A = 0.5 
+	# A = 1.0 
+	# A = .05
 	phase = 0
 
 	while True: 
@@ -42,7 +44,7 @@ def looper():
 			arr[2:-1:4] = g * (A*np.sin(t+6*phase)+A)/2*255
 			arr[3:3+numpixels*4:4] = r * (A*np.sin(t+phase)+A)/2*255 
 			strip.show(arr.tostring())
-		yield from asyncio.sleep(.02)
+		yield from asyncio.sleep(.01)
 
 
 i = 0
