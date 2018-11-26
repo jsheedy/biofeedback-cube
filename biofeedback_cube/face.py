@@ -41,15 +41,12 @@ class Face():
 		self.arr[2:-1:4] = g * (A*np.sin(t+6*phase)+A)/2
 		self.arr[3:3+self.rows*self.cols*4:4] = r * (A*np.sin(t+phase)+A)/2
 
-		
-
 	def test_pattern_lines(self, t):
 		v = int((t*self.rows ) % self.rows)
 		self.arr[:] = 0
 		self.arr[1+v::4*self.rows] = 0.5
 		# self.arr[2::4] = 0
 		# self.arr[3::4] = 0.0
-
 		return self.arr
 
 	def iter_pixels(self, i):
@@ -59,8 +56,8 @@ class Face():
 		self.arr[color + (i%self.N)*4] = 1
 		return self.arr
 		
-	def render(self, t):
-		return self.iter_pixels(t)
+	def render(self, t, i):
+		return self.iter_pixels(int(t*300))
 		# return self.test_pattern_lines(t)
 
 
@@ -72,7 +69,7 @@ def main():
 	i = 0
 	while True:
 		t = time.time() - t0	
-		arr = face.render(i)
+		arr = face.render(t=t, i=i)
 		i += 1
 		arr_bytes = as_uint8(arr)
 		# print(arr_bytes)
