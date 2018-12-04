@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import time
 
 import numpy as np
+from PIL import Image
 
 from dotstar import Adafruit_DotStar
 
@@ -32,6 +33,12 @@ class Face():
 		self.arr = np.zeros(rows * cols * 4, dtype=np.float64)
 		self.grid = np.zeros(shape=(rows,cols,4), dtype=np.float64)
 
+		im = Image.open('heart.png')
+		im = im.resize((self.rows, self.rows))
+		x = np.array(im.getdata()).reshape(self.rows, self.rows, 1)
+		self.x = x[:,0::8,:]
+
+
 	def waves(self, t):
 		phase = 0.2
 		A = 1.0
@@ -48,6 +55,11 @@ class Face():
 		# self.arr[2::4] = 0
 		# self.arr[3::4] = 0.0
 		return self.arr
+	
+	def to_arr(self):
+		x = self.grid
+		x[:,0::2,:] = x[::-1,0::2,:]
+		return x.transpose(1,0,2).ravel()
 
 	def test_pattern_triangle(self):
 		"""  """
@@ -57,22 +69,25 @@ class Face():
 		return self.arr
 	
 	def test_grid(self, t):	
-		
-		v = int((t*2) % self.rows)
+		f = 3	
+		v = int((np.sin(f*t)/2+0.5)*self.rows)
+		u = int((np.sin(f*2*t)/2+0.5)*self.cols)
+		# v = int((t*32) % self.rows)
 		self.grid[:,:,:] = 0
-
 		self.grid[:,:,0] = 1
-		self.grid[:,:,1] = 0.1
+
+		self.grid[:,:,1] = 0.00
 		self.grid[:,:,2] = 0.15
-		self.grid[:,:,3] = 0.05
+		self.grid[:,:,3] = 0.00
 
 		self.grid[v,:,1] = 1.0
-		print(v)
+		# self.grid[:,u,1] = 0.2
 
-		# reverse alternate columns
-		self.grid[:, 0::2,:] = self.grid[::-1, 0::2,:]
-		arr = self.grid.flatten(order='C')  #order='C')
-		return arr
+		return self.to_arr()
+
+	def test_heart(self, t):
+		self.grid = self.x
+		return self.to_arr()
 
 	def iter_pixels(self, i):
 		""" light each pixel in sequence """
@@ -85,6 +100,7 @@ class Face():
 		# return self.iter_pixels(int(t*300))
 		# return self.test_pattern_lines(t)
 		# return self.test_pattern_triangle()
+		# return self.test_heart(t)
 		return self.test_grid(t)
 
 
@@ -99,7 +115,6 @@ def main():
 		arr = face.render(t=t, i=i)
 		i += 1
 		arr_bytes = as_uint8(arr)
-		# print(arr_bytes)
 		strip.show(arr_bytes)
 		# time.sleep(.005)
 
