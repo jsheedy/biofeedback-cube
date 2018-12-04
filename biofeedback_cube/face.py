@@ -29,8 +29,8 @@ class Face():
 		self.rows = rows
 		self.cols = cols
 		self.N = rows * cols
-		self.arr = np.ones(rows * cols * 4, dtype=np.float64)
-		# arr[0:-1:4] = 0xff
+		self.arr = np.zeros(rows * cols * 4, dtype=np.float64)
+		self.grid = np.zeros(shape=(rows,cols,4), dtype=np.float64)
 
 	def waves(self, t):
 		phase = 0.2
@@ -49,6 +49,31 @@ class Face():
 		# self.arr[3::4] = 0.0
 		return self.arr
 
+	def test_pattern_triangle(self):
+		"""  """
+		self.arr[:] = 0
+		self.arr[1::4] = np.linspace(0,.5,self.N)
+		self.arr[2::4] = np.linspace(.5,0,self.N)
+		return self.arr
+	
+	def test_grid(self, t):	
+		
+		v = int((t*2) % self.rows)
+		self.grid[:,:,:] = 0
+
+		self.grid[:,:,0] = 1
+		self.grid[:,:,1] = 0.1
+		self.grid[:,:,2] = 0.15
+		self.grid[:,:,3] = 0.05
+
+		self.grid[v,:,1] = 1.0
+		print(v)
+
+		# reverse alternate columns
+		self.grid[:, 0::2,:] = self.grid[::-1, 0::2,:]
+		arr = self.grid.flatten(order='C')  #order='C')
+		return arr
+
 	def iter_pixels(self, i):
 		""" light each pixel in sequence """
 		color = ((i // self.N) % 3) + 1
@@ -57,8 +82,10 @@ class Face():
 		return self.arr
 		
 	def render(self, t, i):
-		return self.iter_pixels(int(t*300))
+		# return self.iter_pixels(int(t*300))
 		# return self.test_pattern_lines(t)
+		# return self.test_pattern_triangle()
+		return self.test_grid(t)
 
 
 def main():
