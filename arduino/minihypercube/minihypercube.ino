@@ -11,6 +11,8 @@ CRGB leds[NUM_LEDS];
 void setup() {
   // APA102 is dotstars https://github.com/FastLED/FastLED/wiki/Chipset-reference
   FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
+  FastLED.setBrightness(0xff);
+
   // FastLED.addLeds<APA102, BGR>(leds, NUM_LEDS);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
@@ -74,25 +76,28 @@ void faceChase() {
 }
 
 void heartBeat() {
+  FastLED.clear();
   FastLED.setBrightness(0);
-  CRGB color = CHSV(10, 255, 255);
+  CRGB baseline = CRGB(0,0,20);
+  CRGB color = baseline + CHSV(10, 255, 255);
   fill_solid( &(leds[0]), NUM_LEDS, color);
 
   fadeIn(0,2);
   fadeOut(0,2);
-  color = CHSV(0, 255, 255);
+  color = baseline + CHSV(0, 255, 255);
   fill_solid( &(leds[0]), NUM_LEDS, color);
   fadeIn(0,2);
-  
+
   unsigned long t0 = millis();
   unsigned long t1 = 0;
   unsigned long dt = 1500;
   unsigned long end = t0 + dt;
-  
+
   while(t1 < dt) {
     fract8 fract = t1 * 256 / dt;
     byte s = lerp8by8(255,0,fract);
-    color = CHSV(fract / 2, s, dim8_raw(s));
+    color = baseline + CHSV(fract / 2, s, 255);
+    FastLED.setBrightness(s);
     fill_solid( &(leds[0]), NUM_LEDS, color);
     FastLED.show();
     t1 = millis() - t0;
@@ -112,9 +117,25 @@ void dawn() {
   fadeOut(10);
 }
 
+void wave() {
+  long t = millis();
+  FastLED.setBrightness(10);
+  for(int i=0; i<NUM_LEDS; i++ ) {
+    leds[i] = CRGB(0,0,sin8(t/4+i*15));
+  }
+  FastLED.show();
+}
+
+void waves() {
+  for(int i=0; i<2000; i++ ) {
+    wave();
+  }
+}
+
 void loop() {
   heartBeats(1);
-  FastLED.delay(random8());
+  // FastLED.delay(random8());
+  waves();
 
 //  switch(random(0,7)) {
 //    case 0:
