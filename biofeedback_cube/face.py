@@ -9,7 +9,7 @@ from PIL import Image
 
 from dotstar import Adafruit_DotStar
 
-def as_uint8(arr, gamma=2.4):
+def as_uint8(arr, gamma=2.0):
 
 	gamma_corrected = np.clip(arr, 0, 1) ** gamma
 	u8 = (gamma_corrected * 255.0).astype(np.uint8)
@@ -26,6 +26,7 @@ def as_uint8(arr, gamma=2.4):
 
 
 class Face():
+
 	def __init__(self, rows=68, cols=8):
 		self.rows = rows
 		self.cols = cols
@@ -37,16 +38,6 @@ class Face():
 		im = im.resize((self.rows, self.rows))
 		x = np.array(im.getdata()).reshape(self.rows, self.rows, 1)
 		self.x = x[:,0::8,:]
-
-
-	def waves(self, t):
-		phase = 0.2
-		A = 1.0
-		r,g,b = colorsys.hsv_to_rgb(phase, 1, 1)
-
-		self.arr[1:-1:4] = b * (A*np.sin(t+5*phase)+A)/2
-		self.arr[2:-1:4] = g * (A*np.sin(t+6*phase)+A)/2
-		self.arr[3:3+self.rows*self.cols*4:4] = r * (A*np.sin(t+phase)+A)/2
 
 	def test_pattern_lines(self, t):
 		v = int((t*self.rows ) % self.rows)
@@ -69,25 +60,62 @@ class Face():
 		return self.arr
 	
 	def test_grid(self, t):	
-		f = 3	
+		f = 59	
 		v = int((np.sin(f*t)/2+0.5)*self.rows)
-		u = int((np.sin(f*2*t)/2+0.5)*self.cols)
-		# v = int((t*32) % self.rows)
-		self.grid[:,:,:] = 0
 		self.grid[:,:,0] = 1
-
-		self.grid[:,:,1] = 0.00
-		self.grid[:,:,2] = 0.15
-		self.grid[:,:,3] = 0.00
-
+		self.grid[:,:,1:4] *= 0.01
 		self.grid[v,:,1] = 1.0
-		# self.grid[:,u,1] = 0.2
+		return self.to_arr()
+	
+	def test_normal_grid(self, t):	
+		cube = self.grid[:,:,1:4] 
+		yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
+
+		def sin(x):
+			return (np.sin(x) + 1)/2
+		def cos(x):
+			return (np.cos(x) + 1)/2
+
+		x = .11 + sin(9.5*xx*yy + 2*t)  * cos(8*yy + 4*t) + sin(xx+3.0*t)*cos(yy+2.0*t)
+		r = .2 + 0.3*sin(.2*t)
+		g = 0.1 + .2 *sin(t)
+		b = 0.3
+		cube[:,:,0] = b*x
+		cube[:,:,1] = g*x
+		cube[:,:,2] = r*x
+		return self.to_arr()
+
+	def anatomecha(self, t):	
+		cube = self.grid[:,:,1:4] 
+		yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
+
+		def sin(x):
+			return (np.sin(x) + 1)/2
+		def cos(x):
+			return (np.cos(x) + 1)/2
+
+		# x = .11 + sin(9.5*xx*yy + 2*t)  * cos(8*yy + 4*t) + sin(xx+3.0*t)*cos(yy+2.0*t)
+		# r = .2 + 0.3*sin(.2*t)
+		# g = 0.1 + .2 *sin(t)
+		# b = 0.3
+		# cube[:,:,0] = b*x
+		# cube[:,:,1] = g*x
+		# cube[:,:,2] = r*x
+
+		blue = np.expand_dims(np.linspace(np.clip(t/20,0,1),np.clip(t/40,0,1),self.rows), 0)
+		red = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
+		green = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
+		cube[:,:,0] = 0.1*  blue.T # 0.3 * sin(5*t)
+		if t > 0:
+			cube[:,:,2] = 0.3 * red.T
+		cube[:,:,1] = 0.1 * green.T
+		# cube[:,:,0] = 0.0
+		mask = (0.6*(xx-0.5)**2 + (yy-0.1 - sin(0.1*t))**2 ) < (0.1)
+		cube[mask,:] = 0.1
 
 		return self.to_arr()
 
-	def test_heart(self, t):
-		self.grid = self.x
-		return self.to_arr()
+
 
 	def iter_pixels(self, i):
 		""" light each pixel in sequence """
@@ -95,6 +123,7 @@ class Face():
 		self.arr[:] = 0	
 		self.arr[color + (i%self.N)*4] = 1
 		return self.arr
+
 		
 	def render(self, t, i):
 		# return self.iter_pixels(int(t*300))
@@ -102,6 +131,8 @@ class Face():
 		# return self.test_pattern_triangle()
 		# return self.test_heart(t)
 		return self.test_grid(t)
+		# return self.test_normal_grid(t)
+		# return self.anatomecha(t)
 
 
 def main():
