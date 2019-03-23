@@ -7,8 +7,6 @@ import time
 import numpy as np
 from PIL import Image
 
-from dotstar import Adafruit_DotStar
-
 def as_uint8(arr, gamma=2.0):
 
 	gamma_corrected = np.clip(arr, 0, 1) ** gamma
@@ -46,7 +44,7 @@ class Face():
 		# self.arr[2::4] = 0
 		# self.arr[3::4] = 0.0
 		return self.arr
-	
+
 	def to_arr(self):
 		x = self.grid
 		x[:,0::2,:] = x[::-1,0::2,:]
@@ -58,17 +56,17 @@ class Face():
 		self.arr[1::4] = np.linspace(0,.5,self.N)
 		self.arr[2::4] = np.linspace(.5,0,self.N)
 		return self.arr
-	
-	def test_grid(self, t):	
-		f = 59	
+
+	def test_grid(self, t):
+		f = 3
 		v = int((np.sin(f*t)/2+0.5)*self.rows)
-		self.grid[:,:,0] = 1
-		self.grid[:,:,1:4] *= 0.01
+		self.grid[:,:,1] = 0
+		# self.grid[:,:,1:4] *= 0.01
 		self.grid[v,:,1] = 1.0
-		return self.to_arr()
-	
-	def test_normal_grid(self, t):	
-		cube = self.grid[:,:,1:4] 
+
+
+	def test_normal_grid(self, t):
+		cube = self.grid[:,:,1:4]
 		yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
 
 		def sin(x):
@@ -85,8 +83,8 @@ class Face():
 		cube[:,:,2] = r*x
 		return self.to_arr()
 
-	def anatomecha(self, t):	
-		cube = self.grid[:,:,1:4] 
+	def anatomecha(self, t):
+		cube = self.grid[:,:,1:4]
 		yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
 
 		def sin(x):
@@ -94,37 +92,27 @@ class Face():
 		def cos(x):
 			return (np.cos(x) + 1)/2
 
-		# x = .11 + sin(9.5*xx*yy + 2*t)  * cos(8*yy + 4*t) + sin(xx+3.0*t)*cos(yy+2.0*t)
-		# r = .2 + 0.3*sin(.2*t)
-		# g = 0.1 + .2 *sin(t)
-		# b = 0.3
-		# cube[:,:,0] = b*x
-		# cube[:,:,1] = g*x
-		# cube[:,:,2] = r*x
-
 		blue = np.expand_dims(np.linspace(np.clip(t/20,0,1),np.clip(t/40,0,1),self.rows), 0)
 		red = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
 		green = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
-		cube[:,:,0] = 0.1*  blue.T # 0.3 * sin(5*t)
+		cube[:,:,0] = 0.1*  blue.T
 		if t > 0:
 			cube[:,:,2] = 0.3 * red.T
 		cube[:,:,1] = 0.1 * green.T
-		# cube[:,:,0] = 0.0
 		mask = (0.6*(xx-0.5)**2 + (yy-0.1 - sin(0.1*t))**2 ) < (0.1)
 		cube[mask,:] = 0.1
 
 		return self.to_arr()
 
 
-
 	def iter_pixels(self, i):
 		""" light each pixel in sequence """
 		color = ((i // self.N) % 3) + 1
-		self.arr[:] = 0	
+		self.arr[:] = 0
 		self.arr[color + (i%self.N)*4] = 1
 		return self.arr
 
-		
+
 	def render(self, t, i):
 		# return self.iter_pixels(int(t*300))
 		# return self.test_pattern_lines(t)
@@ -135,20 +123,40 @@ class Face():
 		# return self.anatomecha(t)
 
 
-def main():
-	strip  = Adafruit_DotStar()
-	strip.begin()
-	face = Face()
-	t0 = time.time()
-	i = 0
-	while True:
-		t = time.time() - t0	
-		arr = face.render(t=t, i=i)
-		i += 1
-		arr_bytes = as_uint8(arr)
-		strip.show(arr_bytes)
-		# time.sleep(.005)
+def render_dotstar(strip, array):
+	arr_bytes = as_uint8(arr)
+	strip.show(arr_bytes)
+
+
+def main(render_sdl):
+    if render_sdl:
+        from biofeedback_cube.sdl.driver import sdl_init
+        from biofeedback_cube.sdl.driver import sdl_draw
+        window, renderer, pixels = sdl_init()
+
+    else:
+        from dotstar import Adafruit_DotStar
+        strip = Adafruit_DotStar()
+        strip.begin()
+
+
+    face = Face()
+    t0 = time.time()
+    i = 0
+
+    while True:
+        t = time.time() - t0
+        i += 1
+        face.render(t=t, i=i)
+        if render_sdl:
+            print('rendering sdl')
+            sdl_draw(pixels, window, face.grid)
+        else:
+            arr = face.to_arr()
+            render_dotstar(strip, arr)
+        # time.sleep(.005)
 
 
 if __name__ == "__main__":
-	main()
+    RENDER_SDL=False
+    main(RENDER_SDL)

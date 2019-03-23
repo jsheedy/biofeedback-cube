@@ -16,18 +16,19 @@ import sys
 from types import SimpleNamespace
 import time
 
-import cartopy
 import matplotlib
 import numpy as np
 import sdl2.ext
 import xarray
 
-import get_grid 
+# import get_grid
 
 
 SCALE= 10
-ROWS = 30
-COLS = 60
+# ROWS = 30
+# COLS = 50
+ROWS = 68
+COLS = 8
 WIDTH = COLS * SCALE
 HEIGHT = ROWS * SCALE
 
@@ -38,7 +39,7 @@ def normalize(grid):
     min_h, max_h = field.min(), field.max()
     return (field - min_h) / (max_h - min_h)
 
-def draw(pixels, renderer, grid):
+def sdl_draw(pixels, window, grid):
     rgb = (grid * 255).astype(np.uint32)
     r,g,b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
 
@@ -47,7 +48,12 @@ def draw(pixels, renderer, grid):
     # scale up to window size
     x = np.repeat(x, SCALE, axis=1)
     x = np.repeat(x, SCALE, axis=0)
-    pixels[:,:] = x
+    pixels[:,:] = x.T
+
+    events = sdl2.ext.get_events()
+    window.refresh()
+    sdl2.SDL_Delay(0)
+
 
 
 def handle_events(state):
@@ -86,7 +92,7 @@ def sdl_init():
     surface = window.get_surface()
     pixels = sdl2.ext.pixels2d(surface)
     renderer = sdl2.ext.Renderer(surface, flags=sdl2.SDL_RENDERER_ACCELERATED)
-    renderer.blendmode = sdl2.SDL_BLENDMODE_MOD
+    # renderer.blendmode = sdl2.SDL_BLENDMODE_MOD
     return window, renderer, pixels
 
 
@@ -119,7 +125,7 @@ def render():
         try:
             importlib.reload(get_grid)
             grid = get_grid.get_grid(COLS, ROWS, t, state.joystick)
-            draw(pixels, renderer, grid)
+            sdl_draw(pixels, renderer, grid)
         except (ModuleNotFoundError, Exception):
             continue
         window.refresh()
