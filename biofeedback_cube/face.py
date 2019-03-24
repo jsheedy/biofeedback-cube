@@ -2,6 +2,7 @@
 
 import colorsys
 from datetime import datetime, timedelta
+import os
 import time
 
 import numpy as np
@@ -123,7 +124,7 @@ class Face():
 		# return self.anatomecha(t)
 
 
-def render_dotstar(strip, array):
+def render_dotstar(strip, arr):
 	arr_bytes = as_uint8(arr)
 	strip.show(arr_bytes)
 
@@ -158,5 +159,5 @@ def main(render_sdl):
 
 
 if __name__ == "__main__":
-    RENDER_SDL=False
+    RENDER_SDL = os.getenv('SDL', False)
     main(RENDER_SDL)
