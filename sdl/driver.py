@@ -55,7 +55,6 @@ def sdl_draw(pixels, window, grid):
     sdl2.SDL_Delay(0)
 
 
-
 def handle_events(state):
     events = sdl2.ext.get_events()
     for event in events:
