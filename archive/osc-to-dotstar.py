@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+""" code has been harvested into cube.osc_server
+"""
+1/0
+
 import argparse
 import asyncio
 import colorsys
@@ -31,18 +35,18 @@ last_osc = datetime.now() - timedelta(seconds=IDLE_TIME)
 @asyncio.coroutine
 def looper():
 
-	A = 0.5 
-	# A = 1.0 
+	A = 0.5
+	# A = 1.0
 	# A = .05
 	phase = 0
 
-	while True: 
+	while True:
 		if (datetime.now() - last_osc) > timedelta(seconds=IDLE_TIME):
-			phase += .01 
+			phase += .01
 			r,g,b = colorsys.hsv_to_rgb(phase, 1, 1)
 			arr[1:-1:4] = b * (A*np.sin(t+5*phase)+A)/2*255
 			arr[2:-1:4] = g * (A*np.sin(t+6*phase)+A)/2*255
-			arr[3:3+numpixels*4:4] = r * (A*np.sin(t+phase)+A)/2*255 
+			arr[3:3+numpixels*4:4] = r * (A*np.sin(t+phase)+A)/2*255
 			strip.show(arr.tostring())
 		yield from asyncio.sleep(.01)
 
@@ -54,7 +58,7 @@ def meter(arr, value, r=0, g=1, b=0):
 	meter = np.zeros(numpixels, dtype=np.uint8)
 	idx = int(value*numpixels)
 	meter[:idx] = 255 * value
-	
+
 	# clear
 	arr[1:-1:4] = 0
 	arr[2:-1:4] = 0
@@ -74,7 +78,7 @@ def osc_handler(addr, value, **kwargs):
 	i += 1
 	if i % 50 == 0:
 		print(" ".join((addr, str(value))))
-	
+
 	byte_str = meter(arr, value)
 
 	strip.show(byte_str)
@@ -97,7 +101,7 @@ def main():
 	dsp.map("/pulse", osc_handler)
 	server = osc_server.AsyncIOOSCUDPServer((args.ip, args.port), dsp, loop)
 	server.serve()
-	
+
 	loop.run_forever()
 
 

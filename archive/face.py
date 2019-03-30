@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import time
-
 import numpy as np
 
 
@@ -12,7 +10,7 @@ class Face():
         self.cols = cols
         self.N = rows * cols
         self.arr = np.zeros(rows * cols * 4, dtype=np.float64)
-        self.grid = np.zeros(shape=(rows,cols,4), dtype=np.float64)
+        self.grid = np.zeros(shape=(rows, cols, 4), dtype=np.float64)
 
     def test_pattern_lines(self, t):
         v = int((t*self.rows ) % self.rows)
@@ -24,8 +22,8 @@ class Face():
 
     def to_arr(self):
         x = self.grid
-        x[:,0::2,:] = x[::-1,0::2,:]
-        return x.transpose(1,0,2).ravel()
+        x[:, 0::2, :] = x[::-1, 0::2, :]
+        return x.transpose(1, 0, 2).ravel()
 
     def test_pattern_triangle(self):
         """  """
@@ -37,12 +35,12 @@ class Face():
     def test_grid(self, t):
         f = 3
         v = int((np.sin(f*t)/2+0.5)*self.rows)
-        self.grid[:,:,1] = 0
+        self.grid[:, :, 1] = 0
         # self.grid[:,:,1:4] *= 0.01
-        self.grid[v,:,2] = .8
+        self.grid[v, :, 2] = .8
 
     def test_normal_grid(self, t):
-        cube = self.grid[:,:,1:4]
+        cube = self.grid[:, :, 1:4]
         yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
 
         def sin(x):
@@ -55,13 +53,13 @@ class Face():
         r = .2 + 0.3 * sin(.2*t)
         g = 0.1 + .2 * sin(t)
         b = 0.3
-        cube[:,:,0] = b*x
-        cube[:,:,1] = g*x
-        cube[:,:,2] = r*x
+        cube[:, :, 0] = b*x
+        cube[:, :, 1]  = g*x
+        cube[:, :, 2] = r*x
         return self.to_arr()
 
     def anatomecha(self, t):
-        cube = self.grid[:,:,1:4]
+        cube = self.grid[:, :, 1:4]
         yy, xx = np.mgrid[0:1:complex(0, self.rows), 0:1:complex(0, self.cols)]
 
         def sin(x):
@@ -73,12 +71,12 @@ class Face():
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1),np.clip(t/40,0,1),self.rows), 0)
         red = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
         green = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
-        cube[:,:,0] = 0.1*  blue.T
+        cube[:, :, 0] = 0.1 * blue.T
         if t > 0:
-            cube[:,:,2] = 0.3 * red.T
-        cube[:,:,1] = 0.1 * green.T
-        mask = (0.6*(xx-0.5)**2 + (yy-0.1 - sin(0.1*t))**2 ) < (0.1)
-        cube[mask,:] = 0.1
+            cube[:, :, 2] = 0.3 * red.T
+        cube[:, :, 1] = 0.1 * green.T
+        mask = (0.6*(xx-0.5)**2 + (yy-0.1 - sin(0.1*t))**2) < (0.1)
+        cube[mask, :] = 0.1
 
         return self.to_arr()
 
@@ -86,7 +84,7 @@ class Face():
         """ light each pixel in sequence """
         color = ((i // self.N) % 3) + 1
         self.arr[:] = 0
-        self.arr[color + (i%self.N)*4] = 1
+        self.arr[color + (i % self.N)*4] = 1
         return self.arr
 
     def render(self, t, i):

@@ -1,3 +1,6 @@
+""" CODE MOVED TO display module """
+1/0
+
 #!/usr/bin/env python
 import os
 import importlib
