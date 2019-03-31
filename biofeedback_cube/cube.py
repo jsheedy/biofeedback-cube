@@ -2,15 +2,15 @@
 
 import argparse
 import asyncio
+import importlib
 import logging
-import random
 import time
 
-import numpy as np
 from pythonosc import dispatcher, udp_client
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 
 from biofeedback_cube import pulse_sensor
+from biofeedback_cube import buffer
 from biofeedback_cube import display
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0", help="The ip to listen on")
     parser.add_argument("--port", type=int, default=37337, help="The port to listen on")
+    parser.add_argument("--simulator", action='store_true', help="run simulator")
     args = parser.parse_args()
     return args
 
@@ -57,19 +58,23 @@ cols = 8
 @asyncio.coroutine
 def render():
     t0 = time.time()
-    grid = np.zeros(shape=(rows, cols, 4), dtype=np.float64)
-    s = -1
+    buff = buffer.Buffer(rows, cols)
+
     while True:
         t = time.time() - t0
-        if int(t) > s:
-            s = int(t)
-            y = random.randint(0, rows-1)
-            x = random.randint(0, cols-1)
-            grid[y, x, 1] = 1.0
+        try:
+            importlib.reload(buffer)
+            b2 = buffer.Buffer(rows, cols)
+            b2.locals = buff.locals
+            buff = b2
+        except Exception:
+            logger.exception('whoops 🙀')
+            continue
 
-        grid *= 0.995
+        buff.update(t)
+        grid = buff.get_grid()
         display.draw(grid)
-        yield from asyncio.sleep(0.05)
+        yield from asyncio.sleep(0.01)
 
 
 @asyncio.coroutine
@@ -86,7 +91,7 @@ def pulse_to_osc(host, port):
 
 def main():
     args = parse_args()
-    display.init(rows, cols, sdl=True)
+    display.init(rows, cols, sdl=args.simulator)
 
     coros = (
         # pulse_to_osc(args.host, args.port),

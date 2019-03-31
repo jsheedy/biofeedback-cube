@@ -39,7 +39,7 @@ class SDLDisplay():
 
     def draw(self, grid):
         rgb = (grid * 255).astype(np.uint32)
-        r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+        r, g, b = rgb[:, :, 1], rgb[:, :, 2], rgb[:, :, 3]
 
         # convert to SDL color 32bit BGRA format
         x = 0xff000000 | (r << 16) | (g << 8) | b
