@@ -8,7 +8,9 @@ from biofeedback_cube.utils import sin, cos
 
 
 class Buffer():
-
+	""" buffer is size WxHx4. The last channel is (1,R,G,B), so make
+	transformation to Dotstar LED format 0xffrrggbb simpler as expense
+	of minor complexity here """
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
@@ -36,7 +38,7 @@ class Buffer():
     def update(self, t):
         v = int(sin(2*t)*self.height)
         self.buffer[:, :, :] = 0.0
-        self.buffer[v:v+20, :, 1] = 1.0
+        self.buffer[v:v+20, :, 3] = 1.0
 
     def get_grid(self):
         # return self.buffer[::self.scale, ::self.scale, :]

@@ -60,6 +60,7 @@ class DotstarDisplay():
 
     def serialize_grid(self, grid):
         grid[:, 0::2, :] = grid[::-1, 0::2, :]
+        grid[:, :, 1:] = grid[:, :, 3:0:-1]
         return grid.transpose(1, 0, 2).ravel()
 
     def draw(self, grid, gamma=2.0):
