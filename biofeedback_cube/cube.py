@@ -34,7 +34,7 @@ def main_loop(coros):
     done, _pending = yield from asyncio.wait(coros, return_when=asyncio.FIRST_EXCEPTION)
     for t in done:
         if t.exception():
-            logger.exception(f'task exception {t}')
+            logger.exception('task exception')
             raise t.exception()
 
 
