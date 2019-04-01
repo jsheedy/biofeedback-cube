@@ -57,7 +57,8 @@ class Buffer():
         #     cube[:, :, 2] = 0.3 * red.T
         # cube[:, :, 1] = 0.1 * green.T
 
-        mask = (0.6*(xx-0.5)**2 + (2.6*(yy - 0.4 - 0.2*sin(2*t)))**2) < (0.1)
+        radius = 0.3**2
+        mask = ((xx-0.5)**2 + ((yy - 0.4 - 0.2*sin(2*t)))**2) < radius
         cube[mask, 2] = 1
 
     def clear(self):
