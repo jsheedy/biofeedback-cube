@@ -8,9 +8,10 @@ from biofeedback_cube.utils import sin, cos
 
 
 class Buffer():
-	""" buffer is size WxHx4. The last channel is (1,R,G,B), so make
-	transformation to Dotstar LED format 0xffrrggbb simpler as expense
-	of minor complexity here """
+    """ buffer is size WxHx4. The last channel is (1,R,G,B), so make
+    transformation to Dotstar LED format 0xffrrggbb simpler as expense
+    of minor complexity here """
+
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
