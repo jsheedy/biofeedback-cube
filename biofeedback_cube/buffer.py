@@ -19,9 +19,12 @@ class Buffer():
             'grid': np.zeros(shape=(rows, cols, 4), dtype=np.float64),
             's': -1
         }
-        self.scale = 10
-        self.height = rows*10
-        self.width = cols*10
+        # self.height = rows * self.scale
+        # self.width = cols * self.scale
+        # self.buffer = np.zeros(shape=(self.height, self.width, 4))
+        self.height = rows
+        self.width = rows
+        self.hscale = self.cols / self.width
         self.buffer = np.zeros(shape=(self.height, self.width, 4))
 
     def _get_grid(self, t):
@@ -43,10 +46,10 @@ class Buffer():
 
     def get_grid(self):
         # return self.buffer[::self.scale, ::self.scale, :]
-        return zoom(self.buffer, (0.1, 0.1, 1.0))
+        return zoom(self.buffer, (1, self.hscale, 1))
 
     def __keyframes(cols, rows):
-        times = np.linspace(0,1, 5)
+        times = np.linspace(0, 1, 5)
         frames = np.zeros((cols, rows, 3, 5))
 
         frames[:,:,0,0] = 1
