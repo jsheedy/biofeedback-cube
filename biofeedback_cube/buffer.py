@@ -15,17 +15,21 @@ class Buffer():
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
+        self.height = rows
+        self.width = rows
+        self.hscale = self.cols / self.width
         self.locals = {
-            'grid': np.zeros(shape=(rows, cols, 4), dtype=np.float64),
+            'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             's': -1
         }
         # self.height = rows * self.scale
         # self.width = cols * self.scale
         # self.buffer = np.zeros(shape=(self.height, self.width, 4))
-        self.height = rows
-        self.width = rows
-        self.hscale = self.cols / self.width
-        self.buffer = np.zeros(shape=(self.height, self.width, 4))
+        # self.buffer = np.zeros(shape=(self.height, self.width, 4))
+
+    @property
+    def buffer(self):
+        return self.locals['buffer']
 
     def _get_grid(self, t):
         grid = self.locals['grid']
@@ -66,9 +70,13 @@ class Buffer():
     def clear(self):
         self.buffer[:, :, 1:] = 0.0
 
+    def fade(self, amt=0.995):
+        self.buffer[:, :, 1:] *= amt
+
     def update(self, t):
-        self.clear()
+        # self.clear()
         # self.test_grid(t)
+        self.fade(0.98)
         self.circle(t)
 
     def get_grid(self):
