@@ -58,8 +58,8 @@ class Buffer():
         # cube[:, :, 1] = 0.1 * green.T
 
         radius = 0.3**2
-        y_off = 0.4 + 0.2*sin(2*t)
-        x_off = 0.4 + 0.2*cos(2*t)
+        y_off = 0.25 + 0.5*sin(2*t)
+        x_off = 0.25 + 0.5*cos(2*t)
         mask = ((xx-x_off)**2 + (yy - y_off)**2) < radius
         cube[mask, 2] = 1
 
