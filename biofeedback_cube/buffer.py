@@ -39,10 +39,34 @@ class Buffer():
         grid *= 0.995
         return grid
 
-    def update(self, t):
+    def test_grid(self, t):
         v = int(sin(2*t)*self.height)
         self.buffer[:, :, :] = 0.0
         self.buffer[v:v+20, :, 3] = 1.0
+
+    def circle(self, t):
+        cube = self.buffer[:, :, 1:4]
+        yy, xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
+
+        # blue = np.expand_dims(np.linspace(np.clip(t/20,0,1),np.clip(t/40,0,1),self.rows), 0)
+        # red = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
+        # green = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
+
+        # cube[:, :, 0] = 0.1 * blue.T
+        # if t > 0:
+        #     cube[:, :, 2] = 0.3 * red.T
+        # cube[:, :, 1] = 0.1 * green.T
+
+        mask = (0.6*(xx-0.5)**2 + (2.6*(yy - 0.4 - 0.2*sin(2*t)))**2) < (0.1)
+        cube[mask, 2] = 1
+
+    def clear(self):
+        self.buffer[:, :, 1:] = 0.0
+
+    def update(self, t):
+        self.clear()
+        # self.test_grid(t)
+        self.circle(t)
 
     def get_grid(self):
         # return self.buffer[::self.scale, ::self.scale, :]
