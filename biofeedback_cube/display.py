@@ -1,5 +1,6 @@
-import asyncio
+import ctypes
 import logging
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -36,8 +37,46 @@ class SDLDisplay():
         # renderer.blendmode = sdl2.SDL_BLENDMODE_MOD
         self.pixels[:, :] = 0xffffffff
         self.window.refresh()
+        self.state = SimpleNamespace(
+            running=True,
+            paused=False,
+            speed=0.000005,
+            joystick=SimpleNamespace(
+                x=0,
+                y=0
+            )
+        )
+
+    def handle_events(self):
+        events = sdl2.ext.get_events()
+        for event in events:
+            if event.type == sdl2.SDL_KEYDOWN:
+                if event.key.keysym.sym == 32:  # space
+                    self.state.paused = not self.state.paused
+                elif event.key.keysym.sym == 61:  # +
+                    if self.state.speed < 0.001:
+                        self.state.speed += 0.0000025
+                elif event.key.keysym.sym == 45:  # -
+                    self.state.speed -= 0.0000025
+                    if self.state.speed < 0:
+                        self.state.speed = 0
+                elif event.key.keysym.sym == 113:  # q
+                    self.state.running = False
+
+            elif event.type == sdl2.SDL_MOUSEMOTION:
+                x, y = ctypes.c_int(0), ctypes.c_int(0) # Create two ctypes values
+                _ = sdl2.mouse.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
+                self.state.joystick.y = y.value / self.height
+                self.state.joystick.x = x.value / self.width
+
+            elif event.type == sdl2.SDL_QUIT:
+                self.state.running = False
 
     def draw(self, grid):
+        self.handle_events()
+        if not self.state.running:
+            raise Exception('user quit')
+
         rgb = (grid * 255).astype(np.uint32)
         r, g, b = rgb[:, :, 1], rgb[:, :, 2], rgb[:, :, 3]
 
