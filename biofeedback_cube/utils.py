@@ -11,3 +11,8 @@ def sin(x):
 
 def cos(x):
     return (np.cos(x) + 1)/2
+
+
+def decimate(x):
+    """ make x smaller by doing piecewise mean """
+    return x

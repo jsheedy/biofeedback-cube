@@ -15,9 +15,8 @@ class Buffer():
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
-        self.height = rows
-        self.width = rows
-        self.hscale = self.cols / self.width
+        self.height = 100
+        self.width = 100
         self.locals = {
             'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             's': -1
@@ -28,60 +27,60 @@ class Buffer():
         # self.buffer = np.zeros(shape=(self.height, self.width, 4))
 
     @property
+    def grid(self):
+        return self.buffer[:, :, 1:]
+
+    @property
     def buffer(self):
         return self.locals['buffer']
 
-    def _get_grid(self, t):
-        grid = self.locals['grid']
+    def starfield(self, t):
         marker = int(t*5)
         if marker > self.locals['s']:
             self.locals['s'] = marker
-            y = random.randint(0, self.rows-1)
-            x = random.randint(0, self.cols-1)
-            grid[y, x, 1:] = colorsys.hsv_to_rgb(random.random(), 1, 1)
-
-        grid *= 0.995
-        return grid
+            y = random.randint(0, self.height-1)
+            x = random.randint(0, self.width-1)
+            self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t):
         v = int(sin(2*t)*self.height)
-        self.buffer[:, :, :] = 0.0
-        self.buffer[v:v+20, :, 3] = 1.0
+        color = (0.2, 0.5, 1.0)
+        width = 10
+        self.grid[v:v+width, :, :] = color
 
-    def circle(self, t):
-        cube = self.buffer[:, :, 1:4]
+    def sunrise(self, t):
+        blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
+        red = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
+        green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
+        self.grid[:, :, 0] = blue
+
+    def circle(self, t, color=(0, .2, 1.0)):
         yy, xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
 
-        # blue = np.expand_dims(np.linspace(np.clip(t/20,0,1),np.clip(t/40,0,1),self.rows), 0)
-        # red = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
-        # green = np.expand_dims(np.linspace(np.clip(t/40,0,1),np.clip(t/80,0,1),self.rows), 0)
-
-        # cube[:, :, 0] = 0.1 * blue.T
-        # if t > 0:
-        #     cube[:, :, 2] = 0.3 * red.T
-        # cube[:, :, 1] = 0.1 * green.T
-
         radius = 0.3**2
-        y_off = 0.25 + 0.5*sin(2*t)
-        x_off = 0.25 + 0.5*cos(2*t)
+        y_off = 0.25 + 0.5*sin(1*t)
+        x_off = 0.25 + 0.5*cos(1.1*t)
         mask = ((xx-x_off)**2 + (yy - y_off)**2) < radius
-        cube[mask, 2] = 1
+        self.grid[mask, :] = color
 
     def clear(self):
-        self.buffer[:, :, 1:] = 0.0
+        self.grid[:] = 0.0
 
     def fade(self, amt=0.995):
-        self.buffer[:, :, 1:] *= amt
+        self.grid[:] *= amt
 
     def update(self, t):
         # self.clear()
-        # self.test_grid(t)
         self.fade(0.98)
+        self.test_grid(t)
         self.circle(t)
+        self.starfield(t)
 
     def get_grid(self):
         # return self.buffer[::self.scale, ::self.scale, :]
-        return zoom(self.buffer, (1, self.hscale, 1))
+        vscale = self.rows / self.height
+        hscale = self.cols / self.width
+        return zoom(self.buffer, (vscale, hscale, 1))
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)
