@@ -17,14 +17,17 @@ class Buffer():
         self.cols = cols
         self.height = 100
         self.width = 100
+        self.yy, self.xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
+
+        self.ix, self.jy = np.meshgrid(
+            np.linspace(0, self.width, self.cols, endpoint=False, dtype=np.int32),
+            np.linspace(0, self.height, self.rows, endpoint=False, dtype=np.int32)
+        )
+
         self.locals = {
             'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             's': -1
         }
-        # self.height = rows * self.scale
-        # self.width = cols * self.scale
-        # self.buffer = np.zeros(shape=(self.height, self.width, 4))
-        # self.buffer = np.zeros(shape=(self.height, self.width, 4))
 
     @property
     def grid(self):
@@ -55,12 +58,10 @@ class Buffer():
         self.grid[:, :, 0] = blue
 
     def circle(self, t, color=(0, .2, 1.0)):
-        yy, xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
-
         radius = 0.3**2
         y_off = 0.25 + 0.5*sin(1*t)
         x_off = 0.25 + 0.5*cos(1.1*t)
-        mask = ((xx-x_off)**2 + (yy - y_off)**2) < radius
+        mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
         self.grid[mask, :] = color
 
     def clear(self):
@@ -72,15 +73,12 @@ class Buffer():
     def update(self, t):
         # self.clear()
         self.fade(0.93)
-        # self.test_grid(t)
+        self.test_grid(t)
         self.circle(t)
-        self.starfield(t)
+        # self.starfield(t)
 
     def get_grid(self):
-        # return self.buffer[::self.scale, ::self.scale, :]
-        vscale = self.rows / self.height
-        hscale = self.cols / self.width
-        return zoom(self.buffer, (vscale, hscale, 1))
+        return self.buffer[self.jy, self.ix, :]
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)
