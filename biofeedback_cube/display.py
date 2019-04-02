@@ -23,10 +23,12 @@ _display = None
 
 class SDLDisplay():
 
-    def __init__(self, rows, cols, scale=10):
-        self.width = cols * scale
-        self.height = rows * scale
-        self.scale = scale
+    def __init__(self, rows, cols):
+        self.cols = cols
+        self.rows = rows
+        self.width = 800
+        self.height = 800
+        # self.scale = scale
 
         sdl2.ext.init()
         self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(self.width, self.height))
@@ -82,10 +84,11 @@ class SDLDisplay():
 
         # convert to SDL color 32bit BGRA format
         x = 0xff000000 | (r << 16) | (g << 8) | b
-        # scale up to window size
-        x = np.repeat(x, self.scale, axis=1)
-        x = np.repeat(x, self.scale, axis=0)
-        self.pixels[:, :] = x.T
+
+        yc = np.linspace(0, self.rows, self.height, endpoint=False, dtype=np.int32)
+        xc = np.linspace(0, self.cols, self.width, endpoint=False, dtype=np.int32)
+        yy, xx = np.meshgrid(yc, xc)
+        self.pixels[:, :] = x[yy, xx]
         _ = sdl2.ext.get_events()
         self.window.refresh()
 

@@ -44,11 +44,11 @@ class Buffer():
 
     def test_grid(self, t):
         v = int(sin(2*t)*self.height)
-        color = (0.2, 0.5, 1.0)
+        color = (0.5, .0, .4)
         width = 10
         self.grid[v:v+width, :, :] = color
 
-    def sunrise(self, t):
+    def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
         red = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
         green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
@@ -71,8 +71,8 @@ class Buffer():
 
     def update(self, t):
         # self.clear()
-        self.fade(0.98)
-        self.test_grid(t)
+        self.fade(0.93)
+        # self.test_grid(t)
         self.circle(t)
         self.starfield(t)
 
