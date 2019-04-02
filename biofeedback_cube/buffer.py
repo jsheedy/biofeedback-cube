@@ -1,10 +1,11 @@
 import colorsys
+import functools
 import random
 
 import numpy as np
 from scipy.ndimage import zoom
 
-from biofeedback_cube.utils import sin, cos
+from biofeedback_cube.utils import open_image, sin, cos
 
 
 class Buffer():
@@ -49,7 +50,7 @@ class Buffer():
         v = int(sin(2*t)*self.height)
         color = (0.5, .0, .4)
         width = 10
-        self.grid[v:v+width, :, :] = color
+        self.grid[v:v+width, :, :] += color
 
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
@@ -62,7 +63,7 @@ class Buffer():
         y_off = 0.25 + 0.5*sin(1*t)
         x_off = 0.25 + 0.5*cos(1.1*t)
         mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
-        self.grid[mask, :] = color
+        self.grid[mask, :] += color
 
     def clear(self):
         self.grid[:] = 0.0
@@ -70,11 +71,19 @@ class Buffer():
     def fade(self, amt=0.995):
         self.grid[:] *= amt
 
+    def image(self, fname):
+        im = open_image(fname, scale=0.2)
+        x0 = 0
+        y0 = 0
+        h, w = im.shape[:2]
+        self.grid[y0:y0+h, x0:x0+w, :] += im[:, :, :3]
+
     def update(self, t):
         # self.clear()
         self.fade(0.93)
         self.test_grid(t)
         self.circle(t)
+        self.image('heart.png')
         # self.starfield(t)
 
     def get_grid(self):
