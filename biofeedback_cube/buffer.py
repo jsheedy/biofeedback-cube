@@ -1,11 +1,14 @@
 import colorsys
-import functools
 import random
 
 import numpy as np
-from scipy.ndimage import zoom
+from scipy.ndimage import filters
+from scipy.ndimage import rotate
+from skimage.draw import line_aa
+
 
 from biofeedback_cube.utils import open_image, sin, cos
+from biofeedback_cube import geom
 
 
 class Buffer():
@@ -46,11 +49,10 @@ class Buffer():
             x = random.randint(0, self.width-1)
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
-    def test_grid(self, t):
+    def test_grid(self, t, width=1, weight=1.0):
         v = int(sin(2*t)*self.height)
-        color = (0.5, .0, .4)
-        width = 10
-        self.grid[v:v+width, :, :] += color
+        color = np.array((0.5, .0, .4))
+        self.grid[v:v+width, :, :] += weight * color
 
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
@@ -58,12 +60,47 @@ class Buffer():
         green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
         self.grid[:, :, 0] = blue
 
-    def circle(self, t, color=(0, .2, 1.0)):
+    def circle(self, t, color=(0, .2, 1.0), weight=1.0):
         radius = 0.3**2
         y_off = 0.25 + 0.5*sin(1*t)
         x_off = 0.25 + 0.5*cos(1.1*t)
         mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
-        self.grid[mask, :] += color
+        self.grid[mask, :] += weight * np.array(color)
+
+    def draw_line(self, *pts):
+        assert len(pts) == 4
+        # if points lie outside uv, find the intersection points
+        intersections = geom.line_intersects_uv(*pts)
+        if len(intersections) == 2:
+            x0, y0 = intersections[0]
+            x1, y1 = intersections[1]
+        elif len(intersections) == 1:
+            x0, y0 = intersections[0]
+            if geom.point_in_uv(*pts[:2]):
+                x1, y1 = pts[:2]
+            elif geom.point_in_uv(*pts[2:]):
+                x1, y1 = pts[2:]
+            else:
+                return
+        elif geom.point_in_uv(*pts[:2]) and geom.point_in_uv(*pts[2:]):
+            x0, y0, x1, y1 = pts
+        else:
+            return
+
+        ix0 = int(x0 * (self.width-1))
+        iy0 = int(y0 * (self.height-1))
+        ix1 = int(x1 * (self.width-1))
+        iy1 = int(y1 * (self.height-1))
+        rr, cc, val = line_aa(ix0, iy0, ix1, iy1)
+        self.grid[rr, cc, 1] = val
+
+    def lines(self, t):
+        self.draw_line(
+            2*np.sin(t) + 0.5,
+            2*np.cos(t) + 0.5,
+            2*np.sin(t + np.pi) + 0.5,
+            2*np.cos(t + np.pi) + 0.5,
+        )
 
     def clear(self):
         self.grid[:] = 0.0
@@ -71,23 +108,30 @@ class Buffer():
     def fade(self, amt=0.995):
         self.grid[:] *= amt
 
-    def image(self, fname):
-        im = open_image(fname, scale=0.2)
-        x0 = 0
-        y0 = 0
+    def blur(self, sigma=2):
+        self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
+
+    def image(self, t, fname, x0=20, y0=15, weight=1.0):
+        scale = 0.12  #  0.0 + 0.1*sin(4*t)
+        rgba = open_image(fname, scale=scale)
+        rgba = rotate(rgba, 20*t)
+        im = rgba[:,:,:3]
+        alpha = np.expand_dims(rgba[:,:,3], 2)
         h, w = im.shape[:2]
-        self.grid[y0:y0+h, x0:x0+w, :] += im[:, :, :3]
+        self.grid[y0:y0+h, x0:x0+w, :] += weight * alpha * im[:, :, :]
 
     def update(self, t):
         # self.clear()
-        self.fade(0.93)
-        self.test_grid(t)
-        self.circle(t)
-        self.image('heart.png')
+        self.fade(0.96)
+        self.lines(t)
+        # self.test_grid(t, width=2, weight=1)
+        # self.circle(t, weight=cos(0.5*t))
+        # self.image(t, 'heart.png')
+        # self.blur(0.7)
         # self.starfield(t)
 
     def get_grid(self):
-        return self.buffer[self.jy, self.ix, :]
+        return np.clip(self.buffer[self.jy, self.ix, :], 0, 1)
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)
