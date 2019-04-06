@@ -53,8 +53,8 @@ class Buffer():
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
-        v = int(sin(1.2*t)*self.height)
-        color = np.array((0.5, .1, 0.4*sin(0.2*t)))
+        v = int(sin(0.8*t)*self.height)
+        color = np.array((0.5, .1, 0.1*sin(0.2*t)))
         self.grid[v:v+width, :, :] += weight * color
 
     def __sunrise(self, t):
@@ -72,12 +72,12 @@ class Buffer():
 
     def tent(self, t, color=(.7, .2, .4), weight=1.0):
         """ similar to a circle but like a circus tent """
-        r = 1*(sin(2.1*t)+2)
+        r = 1*(sin(0.3*t)+2)
         tent = np.clip(1-np.sqrt((r*(self.xx-0.5))**2+ (r*(self.yy-0.5))**2), 0, 1)
         r,g,b = color
-        self.grid[:, :, 0] = r * tent
-        self.grid[:, :, 1] = sin(t) * tent
-        self.grid[:, :, 2] = b * tent
+        self.grid[:, :, 0] += r * tent
+        self.grid[:, :, 1] += sin(t) * tent
+        self.grid[:, :, 2] += b * tent
         # y = weight * tent
         # x = self.layer_op(x, (tent))
 
@@ -132,6 +132,9 @@ class Buffer():
     def blur(self, sigma=2):
         self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
 
+    def bright(self, bright=1.0):
+        self.grid[:] *= bright 
+
     def image(self, t, fname, x0=0, y0=15, weight=1.0):
         scale = 0.12  #  0.0 + 0.1*sin(4*t)
         rgba = open_image(fname, scale=scale)
@@ -145,13 +148,14 @@ class Buffer():
 
     def update(self, t):
         # self.clear()
-        self.fade(0.2)
-        self.lines(t)
+        # self.fade(0.99)
+        # self.lines(t)
         self.tent(t)
-        self.test_grid(t, width=2, weight=1)
+        # self.test_grid(t, width=2, weight=1)
         # self.circle(t, weight=cos(0.5*t))
         # self.image(t, 'heart.png')
-        self.blur(2.7)
+        self.blur(1.7)
+        self.bright(0.4)
         # self.starfield(t)
 
     def get_grid(self):

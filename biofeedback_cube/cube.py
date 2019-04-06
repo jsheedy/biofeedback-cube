@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument("--host", default="0.0.0.0", help="The ip to listen on")
     parser.add_argument("--port", type=int, default=37337, help="The port to listen on")
     parser.add_argument("--simulator", action='store_true', help="run simulator")
+    parser.add_argument("--reload", action='store_true', help="live coding")
     args = parser.parse_args()
     return args
 
@@ -56,14 +57,15 @@ cols = 8
 
 
 @asyncio.coroutine
-def render():
+def render(reload=False):
     t0 = time.time()
     buff = buffer.Buffer(rows, cols)
 
     while True:
         t = time.time() - t0
         try:
-            importlib.reload(buffer)
+            if reload:
+                importlib.reload(buffer)
             b2 = buffer.Buffer(rows, cols)
             b2.locals = buff.locals
             buff = b2
@@ -96,7 +98,7 @@ def main():
     coros = (
         # pulse_to_osc(args.host, args.port),
         # osc_server(args.host, args.port),
-        render(),
+        render(reload=args.reload),
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))
