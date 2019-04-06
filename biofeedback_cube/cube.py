@@ -7,6 +7,7 @@ import logging
 import os
 import time
 
+from dataclasses import dataclass
 from pythonosc import dispatcher, udp_client
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 
@@ -42,16 +43,24 @@ def main_loop(coros):
 
 
 @asyncio.coroutine
-def osc_server(host, port):
+def osc_server(host, port, hydra):
     def osc_handler(addr, value, **kwargs):
         logger.info(" ".join((addr, str(value))))
+        hydra.x = value
         osc_queue.append(value)
+
+    def shutdown_handler(addr, value, **kwargs):
+        logger.critical("shutting down")
+        os.system('sudo shutdown -r now')
 
     dsp = dispatcher.Dispatcher()
     dsp.map("/pulse", osc_handler)
+    dsp.map('/hydra/*', osc_handler)
+    dsp.map('/shutdown', shutdown_handler)
+    dsp.map('*', logger.info)
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
-    server.create_serve_endpoint()
+    asyncio.ensure_future(server.create_serve_endpoint())
 
 
 rows = 68
@@ -59,7 +68,7 @@ cols = 8
 
 
 @asyncio.coroutine
-def render(reload=False):
+def render(reload=False, hydra=None):
     t0 = time.time()
     buff = buffer.Buffer(rows, cols)
 
@@ -68,7 +77,7 @@ def render(reload=False):
         try:
             if reload:
                 importlib.reload(buffer)
-            b2 = buffer.Buffer(rows, cols)
+            b2 = buffer.Buffer(rows, cols, hydra)
             b2.locals = buff.locals
             buff = b2
             buff.update(t)
@@ -91,7 +100,14 @@ def pulse_to_osc(host, port):
         x = pulse_sensor.normalized_read()
         osc_client.send_message("/pulse", x)
         yield from asyncio.sleep(SAMPLING_DELAY)
+@dataclass
+class Hydra():
+    x: float=0
+    y: float=0
+    z: float=0
+    q: float=0
 
+hydra = Hydra()
 
 def main():
     args = parse_args()
@@ -106,8 +122,8 @@ def main():
 
     coros = (
         # pulse_to_osc(args.host, args.port),
-        # osc_server(args.host, args.port),
-        render(reload=reload),
+        render(hydra=hydra, reload=reload),
+        osc_server(args.host, args.port, hydra),
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))

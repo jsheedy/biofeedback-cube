@@ -3,3 +3,4 @@ Adafruit-PureIO==0.2.3
 scikit-image
 imageio
 python-osc
+dataclasses

@@ -17,11 +17,13 @@ class Buffer():
     transformation to Dotstar LED format 0xffrrggbb simpler as expense
     of minor complexity here """
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, hydra=None):
         self.rows = rows
         self.cols = cols
-        self.height = 100
-        self.width = 100
+        size = 200
+        self.height = size
+        self.width = size
+        self.hydra = hydra
         self.yy, self.xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
 
         self.ix, self.jy = np.meshgrid(
@@ -75,9 +77,9 @@ class Buffer():
         r = 1*(sin(0.3*t)+2)
         tent = np.clip(1-np.sqrt((r*(self.xx-0.5))**2+ (r*(self.yy-0.5))**2), 0, 1)
         r,g,b = color
-        self.grid[:, :, 0] += r * tent
-        self.grid[:, :, 1] += sin(t) * tent
-        self.grid[:, :, 2] += b * tent
+        self.grid[:, :, 0] += weight * r * tent
+        self.grid[:, :, 1] += weight * sin(t) * tent
+        self.grid[:, :, 2] += weight * b * tent
         # y = weight * tent
         # x = self.layer_op(x, (tent))
 
@@ -123,6 +125,14 @@ class Buffer():
         )
         self.draw_line(rgb, pts)
 
+    def hydra_line(self, t):
+        rgb = (0.1, 0.2, 0.9)
+        y = self.hydra.x
+        pts = (
+            y, 0, y, 1
+        )
+        self.draw_line(rgb, pts)
+
     def clear(self):
         self.grid[:] = 0.0
 
@@ -133,7 +143,7 @@ class Buffer():
         self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
 
     def bright(self, bright=1.0):
-        self.grid[:] *= bright 
+        self.grid[:] *= bright
 
     def image(self, t, fname, x0=0, y0=15, weight=1.0):
         scale = 0.12  #  0.0 + 0.1*sin(4*t)
@@ -148,14 +158,15 @@ class Buffer():
 
     def update(self, t):
         # self.clear()
-        # self.fade(0.99)
+        self.fade(0.93)
         # self.lines(t)
-        self.tent(t)
+        self.tent(t, weight=0.4)
         # self.test_grid(t, width=2, weight=1)
+        self.hydra_line(t)
         # self.circle(t, weight=cos(0.5*t))
         # self.image(t, 'heart.png')
         self.blur(1.7)
-        self.bright(0.4)
+        self.bright(0.99)
         # self.starfield(t)
 
     def get_grid(self):

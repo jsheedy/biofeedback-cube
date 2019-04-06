@@ -23,11 +23,11 @@ _display = None
 
 class SDLDisplay():
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, width=600, height=600):
         self.cols = cols
         self.rows = rows
-        self.width = 800
-        self.height = 800
+        self.width = width
+        self.height = height
         # self.scale = scale
 
         sdl2.ext.init()
