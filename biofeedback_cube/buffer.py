@@ -53,8 +53,8 @@ class Buffer():
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
-        v = int(sin(2*t)*self.height)
-        color = np.array((0.5, .0, .4))
+        v = int(sin(1.2*t)*self.height)
+        color = np.array((0.5, .1, 0.4*sin(0.2*t)))
         self.grid[v:v+width, :, :] += weight * color
 
     def __sunrise(self, t):
@@ -69,6 +69,17 @@ class Buffer():
         x_off = 0.25 + 0.5*cos(1.1*t)
         mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
         self.grid[mask, :] += weight * np.array(color)
+
+    def tent(self, t, color=(.7, .2, .4), weight=1.0):
+        """ similar to a circle but like a circus tent """
+        r = 1*(sin(2.1*t)+2)
+        tent = np.clip(1-np.sqrt((r*(self.xx-0.5))**2+ (r*(self.yy-0.5))**2), 0, 1)
+        r,g,b = color
+        self.grid[:, :, 0] = r * tent
+        self.grid[:, :, 1] = sin(t) * tent
+        self.grid[:, :, 2] = b * tent
+        # y = weight * tent
+        # x = self.layer_op(x, (tent))
 
     def draw_line(self, rgb, pts):
         assert len(pts) == 4
@@ -95,12 +106,15 @@ class Buffer():
         ix1 = int(x1 * (self.width-1))
         iy1 = int(y1 * (self.height-1))
         rr, cc, val = line_aa(ix0, iy0, ix1, iy1)
-        self.grid[rr, cc, :] = rgb
+        r,g,b = rgb
+        self.grid[rr, cc, 0] += r * val
+        self.grid[rr, cc, 1] += g * val
+        self.grid[rr, cc, 2] += b * val
 
     def lines(self, t):
         rgb = (0.2, 0.6, 0.8)
         f = 00.4
-        r = 0.4
+        r = 0.9
         pts = (
             r*np.sin(f*t) + 0.5,
             r*np.cos(f*t) + 0.5,
@@ -125,15 +139,16 @@ class Buffer():
         im = rgba[:,:,:3]
         alpha = np.expand_dims(rgba[:,:,3], 2)
         h, w = im.shape[:2]
-        x = self.grid[y0:y0+h, x0:x0+w, :] 
+        x = self.grid[y0:y0+h, x0:x0+w, :]
         y = weight * alpha * im[:, :, :]
         x = self.layer_op(x,y)
 
     def update(self, t):
         # self.clear()
-        self.fade(0.10)
+        self.fade(0.2)
         self.lines(t)
-        # self.test_grid(t, width=2, weight=1)
+        self.tent(t)
+        self.test_grid(t, width=2, weight=1)
         # self.circle(t, weight=cos(0.5*t))
         # self.image(t, 'heart.png')
         self.blur(2.7)

@@ -74,7 +74,7 @@ def render():
             logger.exception('whoops 🙀')
             continue
 
-        yield from asyncio.sleep(0.01)
+        yield from asyncio.sleep(0.001)
 
 
 @asyncio.coroutine
