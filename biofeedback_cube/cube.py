@@ -67,13 +67,13 @@ def render():
             b2 = buffer.Buffer(rows, cols)
             b2.locals = buff.locals
             buff = b2
+            buff.update(t)
+            grid = buff.get_grid()
+            display.draw(grid)
         except Exception:
             logger.exception('whoops 🙀')
             continue
 
-        buff.update(t)
-        grid = buff.get_grid()
-        display.draw(grid)
         yield from asyncio.sleep(0.01)
 
 
