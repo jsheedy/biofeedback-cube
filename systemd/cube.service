@@ -1,0 +1,14 @@
+[Unit]
+Description=biofeedback cube
+
+[Service]
+# Type=exec
+EnvironmentFile=/etc/cube_environment
+ExecStart=/home/pi/berryconda3/bin/cube
+# ExecReload=/bin/kill -HUP $MAINPID
+WorkingDirectory=/home/pi/cube/
+Restart=always
+# RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
