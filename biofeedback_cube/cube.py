@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import importlib
 import logging
+import os
 import time
 
 from pythonosc import dispatcher, udp_client
@@ -13,6 +14,7 @@ from biofeedback_cube import pulse_sensor
 from biofeedback_cube import buffer
 from biofeedback_cube import display
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SAMPLING_DELAY = 1/20
@@ -95,10 +97,17 @@ def main():
     args = parse_args()
     display.init(rows, cols, sdl=args.simulator)
 
+    reload = args.reload or os.getenv('RELOAD')
+
+    if reload:
+        logger.info(f'live coding mode enabled')
+    else:
+        logger.info(f'live coding mode disabled')
+
     coros = (
         # pulse_to_osc(args.host, args.port),
         # osc_server(args.host, args.port),
-        render(reload=args.reload),
+        render(reload=reload),
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))
