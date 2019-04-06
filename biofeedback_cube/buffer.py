@@ -1,4 +1,5 @@
 import colorsys
+import operator
 import random
 
 import numpy as np
@@ -32,6 +33,8 @@ class Buffer():
             'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             's': -1
         }
+        self.layer_op = operator.imul
+        self.layer_op = operator.iadd
 
     @property
     def grid(self):
@@ -67,7 +70,7 @@ class Buffer():
         mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
         self.grid[mask, :] += weight * np.array(color)
 
-    def draw_line(self, *pts):
+    def draw_line(self, rgb, pts):
         assert len(pts) == 4
         # if points lie outside uv, find the intersection points
         intersections = geom.line_intersects_uv(*pts)
@@ -92,15 +95,19 @@ class Buffer():
         ix1 = int(x1 * (self.width-1))
         iy1 = int(y1 * (self.height-1))
         rr, cc, val = line_aa(ix0, iy0, ix1, iy1)
-        self.grid[rr, cc, 1] = val
+        self.grid[rr, cc, :] = rgb
 
     def lines(self, t):
-        self.draw_line(
-            2*np.sin(t) + 0.5,
-            2*np.cos(t) + 0.5,
-            2*np.sin(t + np.pi) + 0.5,
-            2*np.cos(t + np.pi) + 0.5,
+        rgb = (0.2, 0.6, 0.8)
+        f = 00.4
+        r = 0.4
+        pts = (
+            r*np.sin(f*t) + 0.5,
+            r*np.cos(f*t) + 0.5,
+            r*np.sin(f*t + np.pi) + 0.5,
+            r*np.cos(f*t + np.pi) + 0.5,
         )
+        self.draw_line(rgb, pts)
 
     def clear(self):
         self.grid[:] = 0.0
@@ -111,23 +118,25 @@ class Buffer():
     def blur(self, sigma=2):
         self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
 
-    def image(self, t, fname, x0=20, y0=15, weight=1.0):
+    def image(self, t, fname, x0=0, y0=15, weight=1.0):
         scale = 0.12  #  0.0 + 0.1*sin(4*t)
         rgba = open_image(fname, scale=scale)
         rgba = rotate(rgba, 20*t)
         im = rgba[:,:,:3]
         alpha = np.expand_dims(rgba[:,:,3], 2)
         h, w = im.shape[:2]
-        self.grid[y0:y0+h, x0:x0+w, :] += weight * alpha * im[:, :, :]
+        x = self.grid[y0:y0+h, x0:x0+w, :] 
+        y = weight * alpha * im[:, :, :]
+        x = self.layer_op(x,y)
 
     def update(self, t):
         # self.clear()
-        self.fade(0.96)
+        self.fade(0.10)
         self.lines(t)
         # self.test_grid(t, width=2, weight=1)
         # self.circle(t, weight=cos(0.5*t))
         # self.image(t, 'heart.png')
-        # self.blur(0.7)
+        self.blur(2.7)
         # self.starfield(t)
 
     def get_grid(self):

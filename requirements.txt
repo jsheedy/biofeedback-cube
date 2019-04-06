@@ -1,4 +1,5 @@
-numpy==1.16.2
+numpy
 Adafruit-PureIO==0.2.3
-imageio==2.5.0
-scikit-image==0.14.2
+scikit-image
+imageio
+python-osc
