@@ -1,4 +1,5 @@
 import colorsys
+import logging
 import operator
 import random
 
@@ -11,6 +12,8 @@ from skimage.draw import line_aa
 from biofeedback_cube.utils import open_image, sin, cos
 from biofeedback_cube import geom
 
+
+logger = logging.getLogger(__name__)
 
 class Buffer():
     """ buffer is size WxHx4. The last channel is (1,R,G,B), so make
@@ -26,17 +29,19 @@ class Buffer():
         self.hydra = hydra
         self.yy, self.xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
 
-        self.ix, self.jy = np.meshgrid(
+        self.ix, self.iy = np.meshgrid(
             np.linspace(0, self.width, self.cols, endpoint=False, dtype=np.int32),
             np.linspace(0, self.height, self.rows, endpoint=False, dtype=np.int32)
         )
+        self.iix = np.arange(self.width, dtype=np.int32)
+        self.iiy = np.arange(self.height, dtype=np.int32)
+
 
         self.locals = {
             'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
+            'layer_op': operator.iadd,
             's': -1
         }
-        self.layer_op = operator.imul
-        self.layer_op = operator.iadd
 
     @property
     def grid(self):
@@ -45,6 +50,10 @@ class Buffer():
     @property
     def buffer(self):
         return self.locals['buffer']
+
+    @property
+    def layer_op(self):
+        return self.locals['layer_op']
 
     def starfield(self, t):
         marker = int(t*5)
@@ -77,11 +86,9 @@ class Buffer():
         r = 1*(sin(0.3*t)+2)
         tent = np.clip(1-np.sqrt((r*(self.xx-0.5))**2+ (r*(self.yy-0.5))**2), 0, 1)
         r,g,b = color
-        self.grid[:, :, 0] += weight * r * tent
-        self.grid[:, :, 1] += weight * sin(t) * tent
-        self.grid[:, :, 2] += weight * b * tent
-        # y = weight * tent
-        # x = self.layer_op(x, (tent))
+        self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
+        self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * sin(t) * tent)
+        self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
 
     def draw_line(self, rgb, pts):
         assert len(pts) == 4
@@ -145,32 +152,55 @@ class Buffer():
     def bright(self, bright=1.0):
         self.grid[:] *= bright
 
-    def image(self, t, fname, x0=0, y0=15, weight=1.0):
-        scale = 0.12  #  0.0 + 0.1*sin(4*t)
+    def image(self, t, fname, x0=0, y0=15, weight=1.0, scale=1.0):
         rgba = open_image(fname, scale=scale)
-        rgba = rotate(rgba, 20*t)
-        im = rgba[:,:,:3]
-        alpha = np.expand_dims(rgba[:,:,3], 2)
+        # rgba = rotate(rgba, np.pi/2)
+
+        y0 = int(30*t)
+        x0 = int(30*t)
+        # y0 = int(sin(99*t)*self.height)
+        im = rgba[:, :, :3]
+        # alpha = np.expand_dims(rgba[:, :, 3], 2)
+        alpha = 1.0
         h, w = im.shape[:2]
-        x = self.grid[y0:y0+h, x0:x0+w, :]
-        y = weight * alpha * im[:, :, :]
-        x = self.layer_op(x,y)
+
+        x_i = np.take(self.iix, range(x0, x0+w), mode='wrap')
+        y_i = np.take(self.iiy, range(y0, y0+h), mode='wrap')
+
+        xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
+
+        y = weight * alpha * im
+        self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], y)
+        # blit[:] = y[:]
+
+    def select_op(self):
+        if self.hydra.x < 0.3:
+            self.locals['layer_op'] = operator.imul
+
+        elif self.hydra.x > 0.3 and self.hydra.x < 0.6:
+            self.locals['layer_op'] = operator.ipow
+
+        else:
+            self.locals['layer_op'] = operator.iadd
 
     def update(self, t):
+        # self.select_op()
         # self.clear()
-        self.fade(0.93)
-        # self.lines(t)
+        self.fade(0.14)
+        self.lines(t)
         self.tent(t, weight=0.4)
-        # self.test_grid(t, width=2, weight=1)
-        self.hydra_line(t)
-        # self.circle(t, weight=cos(0.5*t))
-        # self.image(t, 'heart.png')
-        self.blur(1.7)
-        self.bright(0.99)
+        self.test_grid(t, width=2, weight=1)
+        # self.hydra_line(t)
+        self.circle(t, weight=cos(0.5*t))
+        # self.image(t, 'lena.png', scale=0.37)
+        self.image(t, 'heart.png', scale=0.4)
+        # self.image(t, 'E.png')
+        self.blur(1.4)
+        # self.bright(0.99)
         # self.starfield(t)
 
     def get_grid(self):
-        return np.clip(self.buffer[self.jy, self.ix, :], 0, 1)
+        return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)
