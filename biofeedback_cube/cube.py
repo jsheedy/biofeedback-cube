@@ -8,9 +8,9 @@ import os
 import time
 
 from dataclasses import dataclass
-from pythonosc import dispatcher, udp_client
-from pythonosc.osc_server import AsyncIOOSCUDPServer
+from pythonosc import udp_client
 
+from biofeedback_cube import osc
 from biofeedback_cube import pulse_sensor
 from biofeedback_cube import buffer
 from biofeedback_cube import display
@@ -20,7 +20,14 @@ logger = logging.getLogger(__name__)
 
 SAMPLING_DELAY = 1/20
 
-osc_queue = []
+
+@dataclass
+class Hydra():
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    q: float = 0.0
+    pulse: float = 0.0
 
 
 def parse_args():
@@ -43,32 +50,7 @@ def main_loop(coros):
 
 
 @asyncio.coroutine
-def osc_server(host, port, hydra):
-    def osc_handler(addr, value, **kwargs):
-        logger.info(" ".join((addr, str(value))))
-        hydra.x = value
-        osc_queue.append(value)
-
-    def shutdown_handler(addr, value, **kwargs):
-        logger.critical("shutting down")
-        os.system('sudo shutdown -r now')
-
-    dsp = dispatcher.Dispatcher()
-    dsp.map("/pulse", osc_handler)
-    dsp.map('/hydra/*', osc_handler)
-    dsp.map('/shutdown', shutdown_handler)
-    dsp.map('*', logger.info)
-    loop = asyncio.get_event_loop()
-    server = AsyncIOOSCUDPServer((host, port), dsp, loop)
-    asyncio.ensure_future(server.create_serve_endpoint())
-
-
-rows = 68
-cols = 8
-
-
-@asyncio.coroutine
-def render(reload=False, hydra=None):
+def render(rows, cols, reload=False, hydra=None):
     t0 = time.time()
     buff = buffer.Buffer(rows, cols)
 
@@ -87,29 +69,25 @@ def render(reload=False, hydra=None):
             logger.exception('whoops 🙀')
             continue
 
-        yield from asyncio.sleep(0.001)
+        yield from asyncio.sleep(0.01)
 
 
 @asyncio.coroutine
 def pulse_to_osc(host, port):
 
     # osc_client = udp_client.SimpleUDPClient('192.168.0.255', 37337, allow_broadcast=True)
-    osc_client = udp_client.SimpleUDPClient(host, property)
+    osc_client = udp_client.SimpleUDPClient(host, port)
 
     while True:
         x = pulse_sensor.normalized_read()
         osc_client.send_message("/pulse", x)
         yield from asyncio.sleep(SAMPLING_DELAY)
-@dataclass
-class Hydra():
-    x: float=0
-    y: float=0
-    z: float=0
-    q: float=0
 
-hydra = Hydra()
 
 def main():
+    rows = 68
+    cols = 8
+
     args = parse_args()
     display.init(rows, cols, sdl=args.simulator)
 
@@ -120,10 +98,12 @@ def main():
     else:
         logger.info(f'live coding mode disabled')
 
+    hydra = Hydra()
+
     coros = (
         # pulse_to_osc(args.host, args.port),
-        render(hydra=hydra, reload=reload),
-        osc_server(args.host, args.port, hydra),
+        render(rows, cols, hydra=hydra, reload=reload),
+        osc.server(args.host, args.port, hydra),
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))

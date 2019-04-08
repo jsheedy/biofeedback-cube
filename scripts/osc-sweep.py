@@ -9,13 +9,13 @@ client = udp_client.SimpleUDPClient('localhost', 37337, allow_broadcast=True)
 
 @asyncio.coroutine
 def sweep():
-    N = 100
+    N = 20
     vals = np.linspace(0, 1, N)
     while True:
         for x in vals:
             client.send_message("/pulse", x)
             print(f'/pulse')
-            yield from asyncio.sleep(0.05)
+            yield from asyncio.sleep(0.2)
 
 
 def main():

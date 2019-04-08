@@ -127,7 +127,7 @@ class Buffer():
 
     def hydra_line(self, t):
         rgb = (0.1, 0.2, 0.9)
-        y = self.hydra.x
+        y = self.hydra.pulse
         pts = (
             y, 0, y, 1
         )
