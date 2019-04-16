@@ -15,7 +15,7 @@ from biofeedback_cube import pulse_sensor
 from biofeedback_cube import buffer
 from biofeedback_cube import display
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 SAMPLING_DELAY = 1/20
@@ -44,6 +44,7 @@ def parse_args():
 def main_loop(coros):
     done, _pending = yield from asyncio.wait(coros, return_when=asyncio.FIRST_EXCEPTION)
     for t in done:
+        print(f'{t} is done')
         if t.exception():
             logger.exception('task exception')
             raise t.exception()

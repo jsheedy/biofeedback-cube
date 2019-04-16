@@ -28,16 +28,18 @@ def shutdown_handler(addr, value, **kwargs):
 def server(host, port, hydra):
 
     addr_map = {
-        '/pulse': partial(pulse_handler, hydra=hydra),
+        # '/pulse': partial(pulse_handler, hydra=hydra),
         '/hydra/*': partial(hydra_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
-        '*': logger.debug
+        '*': lambda *args: logger.debug(str(args))
     }
 
     dsp = dispatcher.Dispatcher()
 
-    all(starmap(dsp.map, addr_map.items()))
+    for pattern, handler in addr_map.items():
+        dsp.map(pattern, handler)
 
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
-    asyncio.ensure_future(server.create_serve_endpoint())
+    transport, protocol = yield from server.create_serve_endpoint()
+    yield from asyncio.sleep(86400*7)
