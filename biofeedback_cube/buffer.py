@@ -4,16 +4,20 @@ import operator
 import random
 
 import numpy as np
+from punyty.vector import Vector3
+from punyty.objects import Cube
+from punyty.renderers import ArrayRenderer
+from punyty.scene import Scene
 from scipy.ndimage import filters
 from scipy.ndimage import rotate
 from skimage.draw import line_aa
-
 
 from biofeedback_cube.utils import open_image, sin, cos
 from biofeedback_cube import geom
 
 
 logger = logging.getLogger(__name__)
+
 
 class Buffer():
     """ buffer is size WxHx4. The last channel is (1,R,G,B), so make
@@ -36,7 +40,6 @@ class Buffer():
         self.iix = np.arange(self.width, dtype=np.int32)
         self.iiy = np.arange(self.height, dtype=np.int32)
 
-
         self.locals = {
             'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             'layer_op': operator.iadd,
@@ -54,6 +57,16 @@ class Buffer():
     @property
     def layer_op(self):
         return self.locals['layer_op']
+
+    def punyty(self, t):
+
+        scene = Scene()
+        cube = Cube()
+        scene.add_object(cube)
+        renderer = ArrayRenderer(self.grid, f=1+4*sin(0.2*t))
+
+        cube.rotate(Vector3(t / 10, t / 11, t / 12))
+        renderer.render(scene)
 
     def starfield(self, t):
         marker = int(t*5)
@@ -186,16 +199,17 @@ class Buffer():
     def update(self, t):
         # self.select_op()
         # self.clear()
-        self.fade(0.14)
-        self.lines(t)
-        self.tent(t, weight=0.4)
-        self.test_grid(t, width=2, weight=1)
+        self.punyty(t)
+        self.fade(0.90)
+        # self.lines(t)
+        # self.tent(t, weight=0.4)
+        # self.test_grid(t, width=2, weight=1)
         # self.hydra_line(t)
-        self.circle(t, weight=cos(0.5*t))
+        # self.circle(t, weight=cos(0.5*t))
         # self.image(t, 'lena.png', scale=0.37)
-        self.image(t, 'heart.png', scale=0.4)
+        # self.image(t, 'heart.png', scale=0.4)
         # self.image(t, 'E.png')
-        self.blur(1.4)
+        self.blur(1.2)
         # self.bright(0.99)
         # self.starfield(t)
 
