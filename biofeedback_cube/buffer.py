@@ -59,13 +59,14 @@ class Buffer():
         return self.locals['layer_op']
 
     def punyty(self, t):
-
         scene = Scene()
         cube = Cube()
         scene.add_object(cube)
-        renderer = ArrayRenderer(self.grid, f=1+4*sin(0.2*t))
+        f = 2 + 2*sin(0.4*t)
+        renderer = ArrayRenderer(self.grid, f=f)
 
         cube.rotate(Vector3(t / 10, t / 11, t / 12))
+        cube.position = Vector3(-0.1 + 0.2*sin(0.2*t), -0.1 + 0.2*cos(0.2*t), 0)
         renderer.render(scene)
 
     def starfield(self, t):
@@ -200,9 +201,9 @@ class Buffer():
         # self.select_op()
         # self.clear()
         self.punyty(t)
-        self.fade(0.90)
+        self.fade(0.80)
         # self.lines(t)
-        # self.tent(t, weight=0.4)
+        self.tent(t, weight=0.4)
         # self.test_grid(t, width=2, weight=1)
         # self.hydra_line(t)
         # self.circle(t, weight=cos(0.5*t))
