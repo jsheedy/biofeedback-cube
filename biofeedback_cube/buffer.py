@@ -40,34 +40,29 @@ class Buffer():
         self.iix = np.arange(self.width, dtype=np.int32)
         self.iiy = np.arange(self.height, dtype=np.int32)
 
+        self.buffer = np.zeros(shape=(self.height, self.width, 4), dtype=np.float64)
         self.locals = {
-            'buffer': np.zeros(shape=(self.height, self.width, 4), dtype=np.float64),
             'layer_op': operator.iadd,
             's': -1
         }
+        self.scene = Scene(f=3.5)
+        self.cube = Cube()
+        self.scene.add_object(self.cube)
+        self.renderer = ArrayRenderer(target_array=self.buffer[:, :, 1:])
 
     @property
     def grid(self):
         return self.buffer[:, :, 1:]
 
     @property
-    def buffer(self):
-        return self.locals['buffer']
-
-    @property
     def layer_op(self):
         return self.locals['layer_op']
 
     def punyty(self, t):
-        scene = Scene()
-        cube = Cube()
-        scene.add_object(cube)
-        f = 2 + 2*sin(0.4*t)
-        renderer = ArrayRenderer(self.grid, f=f)
 
-        cube.rotate(Vector3(t / 10, t / 11, t / 12))
-        cube.position = Vector3(-0.1 + 0.2*sin(0.2*t), -0.1 + 0.2*cos(0.2*t), 0)
-        renderer.render(scene)
+        self.cube.rotate(Vector3(t / 10, t / 11, t / 12))
+        self.cube.position = Vector3(-0.1 + 0.2*sin(0.2*t), -0.1 + 0.2*cos(0.2*t), 0)
+        self.renderer.render(self.scene)
 
     def starfield(self, t):
         marker = int(t*5)
@@ -200,10 +195,10 @@ class Buffer():
     def update(self, t):
         # self.select_op()
         # self.clear()
+        self.fade(0.90)
         self.punyty(t)
-        self.fade(0.80)
         # self.lines(t)
-        self.tent(t, weight=0.4)
+        # self.tent(t, weight=0.4)
         # self.test_grid(t, width=2, weight=1)
         # self.hydra_line(t)
         # self.circle(t, weight=cos(0.5*t))

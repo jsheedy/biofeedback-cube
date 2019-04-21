@@ -5,7 +5,9 @@ import asyncio
 import importlib
 import logging
 import os
+import sys
 import time
+import traceback
 
 from dataclasses import dataclass
 from pythonosc import udp_client
@@ -46,8 +48,9 @@ def main_loop(coros):
     for t in done:
         print(f'{t} is done')
         if t.exception():
-            logger.exception('task exception')
-            raise t.exception()
+            traceback_str = ''.join(traceback.format_tb(t.exception().__traceback__))
+            logger.critical(traceback_str)
+            sys.exit(-1)
 
 
 @asyncio.coroutine
