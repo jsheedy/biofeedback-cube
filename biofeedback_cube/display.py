@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from biofeedback_cube import exceptions
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -77,7 +79,7 @@ class SDLDisplay():
     def draw(self, grid):
         self.handle_events()
         if not self.state.running:
-            raise Exception('user quit')
+            raise exceptions.UserQuit('user quit')
 
         rgb = (grid * 255).astype(np.uint32)
         r, g, b = rgb[:, :, 1], rgb[:, :, 2], rgb[:, :, 3]

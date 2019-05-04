@@ -12,7 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 def hydra_handler(addr, value, hydra=None, **kwargs):
-    hydra.x = value
+    dim = addr.split('/')[-1]
+    if dim == 'x':
+        hydra.x = value
+    if dim == 'y':
+        hydra.y = value
+    if dim == 'z':
+        hydra.z = value
 
 
 def pulse_handler(addr, value, hydra=None, **kwargs):

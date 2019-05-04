@@ -11,7 +11,9 @@ import traceback
 
 from dataclasses import dataclass
 from pythonosc import udp_client
+import uvloop
 
+from biofeedback_cube import exceptions
 from biofeedback_cube import osc
 from biofeedback_cube import pulse_sensor
 from biofeedback_cube import buffer
@@ -69,6 +71,8 @@ def render(rows, cols, reload=False, hydra=None):
             buff.update(t)
             grid = buff.get_grid()
             display.draw(grid)
+        except exceptions.UserQuit:
+            raise
         except Exception:
             logger.exception('whoops 🙀')
             continue
@@ -91,6 +95,8 @@ def pulse_to_osc(host, port):
 def main():
     rows = 68
     cols = 8
+
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
     args = parse_args()
     display.init(rows, cols, sdl=args.simulator)

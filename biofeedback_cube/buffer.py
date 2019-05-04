@@ -60,9 +60,9 @@ class Buffer():
 
     def punyty(self, t):
 
-        self.cube.rotate(Vector3(t / 10, t / 11, t / 12))
-        self.cube.position = Vector3(-0.1 + 0.2*sin(0.2*t), -0.1 + 0.2*cos(0.2*t), 0)
-        self.renderer.render(self.scene)
+        self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
+        self.cube.position = Vector3(0, 0, self.hydra.z*15)
+        self.renderer.render(self.scene, draw_polys=True)
 
     def starfield(self, t):
         marker = int(t*5)
