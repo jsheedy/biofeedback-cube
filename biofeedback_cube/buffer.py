@@ -45,7 +45,7 @@ class Buffer():
             'layer_op': operator.iadd,
             's': -1
         }
-        self.scene = Scene(f=3.5)
+        self.scene = Scene()
         self.cube = Cube()
         self.scene.add_object(self.cube)
         self.renderer = ArrayRenderer(target_array=self.buffer[:, :, 1:])
@@ -61,7 +61,7 @@ class Buffer():
     def punyty(self, t):
 
         self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
-        self.cube.position = Vector3(0, 0, self.hydra.z*15)
+        self.cube.position = Vector3(0, 0, -5 + self.hydra.z*10)
         self.renderer.render(self.scene, draw_polys=True)
 
     def starfield(self, t):
