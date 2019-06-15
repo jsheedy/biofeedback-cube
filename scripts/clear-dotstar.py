@@ -8,7 +8,7 @@ import numpy as np
 from dotstar import Adafruit_DotStar
 
 
-numpixels = 144*1 # Number of LEDs in strip
+numpixels = 544*1 # Number of LEDs in strip
 
 strip    = Adafruit_DotStar()
 strip.begin()

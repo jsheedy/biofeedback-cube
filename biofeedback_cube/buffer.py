@@ -1,5 +1,6 @@
 import colorsys
 import logging
+import math
 import operator
 import random
 
@@ -46,9 +47,13 @@ class Buffer():
             's': -1
         }
         self.scene = Scene()
-        self.cube = Cube()
+        self.cube = Cube(color=Vector3(1, 0.8, 0.2), position=Vector3(0, 0, 15))
         self.scene.add_object(self.cube)
-        self.renderer = ArrayRenderer(target_array=self.buffer[:, :, 1:])
+        self.renderer = ArrayRenderer(
+            target_array=self.buffer[:, :, 1:],
+            draw_edges=False,
+            draw_wireframe=False
+        )
 
     @property
     def grid(self):
@@ -60,9 +65,11 @@ class Buffer():
 
     def punyty(self, t):
 
-        self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
-        self.cube.position = Vector3(0, 0, -5 + self.hydra.z*10)
-        self.renderer.render(self.scene, draw_polys=True)
+        # self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
+        self.cube.rotate(Vector3(0, math.sin(0.2*t), math.cos(0.3*t)))
+        # self.cube.position = Vector3(0, 0, -15 + self.hydra.z*10)
+        # self.cube.position = Vector3(0, math.sin(t), 0)
+        self.renderer.render(self.scene)
 
     def starfield(self, t):
         marker = int(t*5)
@@ -131,7 +138,7 @@ class Buffer():
 
     def lines(self, t):
         rgb = (0.2, 0.6, 0.8)
-        f = 00.4
+        f = 00.8
         r = 0.9
         pts = (
             r*np.sin(f*t) + 0.5,
@@ -205,7 +212,7 @@ class Buffer():
         # self.image(t, 'lena.png', scale=0.37)
         # self.image(t, 'heart.png', scale=0.4)
         # self.image(t, 'E.png')
-        self.blur(1.2)
+        # self.blur(1.2)
         # self.bright(0.99)
         # self.starfield(t)
 

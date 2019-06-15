@@ -65,19 +65,20 @@ def render(rows, cols, reload=False, hydra=None):
         try:
             if reload:
                 importlib.reload(buffer)
-            b2 = buffer.Buffer(rows, cols, hydra)
-            b2.locals = buff.locals
-            buff = b2
+                b2 = buffer.Buffer(rows, cols, hydra)
+                b2.locals = buff.locals
+                buff = b2
             buff.update(t)
             grid = buff.get_grid()
             display.draw(grid)
+
         except exceptions.UserQuit:
             raise
         except Exception:
             logger.exception('whoops 🙀')
             continue
 
-        yield from asyncio.sleep(0.01)
+        yield from asyncio.sleep(0.001)
 
 
 @asyncio.coroutine
@@ -113,7 +114,7 @@ def main():
     coros = (
         # pulse_to_osc(args.host, args.port),
         render(rows, cols, hydra=hydra, reload=reload),
-        osc.server(args.host, args.port, hydra),
+        # osc.server(args.host, args.port, hydra),
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))
