@@ -11,15 +11,18 @@ from pythonosc.osc_server import AsyncIOOSCUDPServer
 logger = logging.getLogger(__name__)
 
 
+def hydraxy_handler(addr, x, y, hydra=None, **kwargs):
+    hydra.x = x
+    hydra.y = y
+
 def hydra_handler(addr, value, hydra=None, **kwargs):
     dim = addr.split('/')[-1]
-    if dim == 'x':
-        hydra.x = value
-    if dim == 'y':
-        hydra.y = value
-    if dim == 'z':
-        hydra.z = value
-
+    if dim == 'a':
+        hydra.a = value
+    if dim == 'b':
+        hydra.b = value
+    if dim == 'c':
+        hydra.c = value
 
 def pulse_handler(addr, value, hydra=None, **kwargs):
     hydra.pulse = value
@@ -35,14 +38,19 @@ def server(host, port, hydra):
 
     addr_map = {
         # '/pulse': partial(pulse_handler, hydra=hydra),
-        '/hydra/*': partial(hydra_handler, hydra=hydra),
+        '/hydra/a': partial(hydra_handler, hydra=hydra),
+        '/hydra/b': partial(hydra_handler, hydra=hydra),
+        '/hydra/c': partial(hydra_handler, hydra=hydra),
+        '/hydra/xy': partial(hydraxy_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
-        '*': lambda *args: logger.debug(str(args))
+        '*': lambda *args: logger.info(str(args))
     }
 
     dsp = dispatcher.Dispatcher()
 
+    logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
+        logger.info(f'{pattern}')
         dsp.map(pattern, handler)
 
     loop = asyncio.get_event_loop()

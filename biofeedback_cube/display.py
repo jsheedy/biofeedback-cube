@@ -113,7 +113,8 @@ class DotstarDisplay():
         u8 = (gamma_corrected * 255.0).astype(np.uint8)
         u8[0::4] = 0xff  # dotstar format is (0xff,r,g,b)
         _bytes = u8.tobytes()
-        self.strip.show(_bytes + _bytes)
+        n_faces = 3
+        self.strip.show(n_faces * _bytes )
 
 
 def init(rows, cols, sdl=True):

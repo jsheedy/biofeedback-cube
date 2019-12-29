@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import importlib
 import logging
+from multiprocessing import Process, Queue
 import os
 import sys
 import time
@@ -24,20 +25,31 @@ logger = logging.getLogger(__name__)
 
 SAMPLING_DELAY = 1/20
 
+t0 = time.time()
+queue = Queue()
+
 
 @dataclass
 class Hydra():
-    x: float = 0.0
-    y: float = 0.0
-    z: float = 0.0
-    q: float = 0.0
-    pulse: float = 0.0
+    x: float = 0.5
+    y: float = 0.5
+    z: float = 0.5
+    a: float = 0.5
+    b: float = 0.5
+    c: float = 0.5
+    pulse: float = 0.5
+
+rows = 68
+cols = 8
+
+hydra = Hydra()
+buff = buffer.Buffer(rows, cols, hydra=hydra)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0", help="The ip to listen on")
-    parser.add_argument("--port", type=int, default=37337, help="The port to listen on")
+    parser.add_argument("--port", type=int, default=37339, help="The port to listen on")
     parser.add_argument("--simulator", action='store_true', help="run simulator")
     parser.add_argument("--reload", action='store_true', help="live coding")
     args = parser.parse_args()
@@ -55,31 +67,52 @@ def main_loop(coros):
             sys.exit(-1)
 
 
+def render(rows, cols, reload=False):
+    
+    t = time.time() - t0
+    try:
+        if reload:
+            global buff
+            importlib.reload(buffer)
+            b2 = buffer.Buffer(rows, cols, hydra)
+            b2.locals = buff.locals
+            buff = b2
+        buff.update(t)
+        return buff.get_grid()
+
+    except exceptions.UserQuit:
+        raise
+    except Exception:
+        logger.exception('whoops 🙀')
+
+
 @asyncio.coroutine
-def render(rows, cols, reload=False, hydra=None):
-    t0 = time.time()
-    buff = buffer.Buffer(rows, cols)
-
+def async_render(rows, cols, reload=False):
+    # _t0 = time.time()
     while True:
-        t = time.time() - t0
-        try:
-            if reload:
-                importlib.reload(buffer)
-                b2 = buffer.Buffer(rows, cols, hydra)
-                b2.locals = buff.locals
-                buff = b2
-            buff.update(t)
-            grid = buff.get_grid()
-            display.draw(grid)
+        grid = render(rows, cols, reload=reload)
+        display.draw(grid)
+        # t = time.time()
+        # dt = t-_t0
+        # _t0 = t
+        # print(dt)
+        yield from asyncio.sleep(0.005)
 
-        except exceptions.UserQuit:
-            raise
-        except Exception:
-            logger.exception('whoops 🙀')
-            continue
 
-        yield from asyncio.sleep(0.001)
+def process_render(rows, cols, reload=False):
+    # _t0 = time.time()
+    while True:
+        grid = render(rows, cols, reload=reload)
+        queue.put(grid)
+        # t = time.time()
+        # dt = t-_t0
+        # _t0 = t
+        # print(dt)
 
+def process_draw():
+    while True:
+        grid = queue.get()
+        display.draw(grid)
 
 @asyncio.coroutine
 def pulse_to_osc(host, port):
@@ -93,12 +126,28 @@ def pulse_to_osc(host, port):
         yield from asyncio.sleep(SAMPLING_DELAY)
 
 
-def main():
-    rows = 68
-    cols = 8
-
+def async_main(rows, cols, args):
+    coros = (
+        # pulse_to_osc(args.host, args.port),
+        async_render(rows, cols, reload=args.reload),
+        osc.server(args.host, args.port, hydra),
+    )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main_loop(coros))
+ 
+def process_main(rows, cols, reload):
 
+    p1 = Process(target=process_render, args=(rows, cols), kwargs={'reload':reload})
+    p2 = Process(target=process_draw)
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+
+
+
+def main():
     args = parse_args()
     display.init(rows, cols, sdl=args.simulator)
 
@@ -109,16 +158,8 @@ def main():
     else:
         logger.info(f'live coding mode disabled')
 
-    hydra = Hydra()
-
-    coros = (
-        # pulse_to_osc(args.host, args.port),
-        render(rows, cols, hydra=hydra, reload=reload),
-        # osc.server(args.host, args.port, hydra),
-    )
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main_loop(coros))
-
+    # process_main(rows, cols, args.reload)
+    async_main(rows, cols, args)
 
 if __name__ == '__main__':
     main()

@@ -28,7 +28,7 @@ class Buffer():
     def __init__(self, rows, cols, hydra=None):
         self.rows = rows
         self.cols = cols
-        size = 200
+        size = 80
         self.height = size
         self.width = size
         self.hydra = hydra
@@ -47,7 +47,7 @@ class Buffer():
             's': -1
         }
         self.scene = Scene()
-        self.cube = Cube(color=Vector3(1, 0.8, 0.2), position=Vector3(0, 0, 15))
+        self.cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(0, 0, 30))
         self.scene.add_object(self.cube)
         self.renderer = ArrayRenderer(
             target_array=self.buffer[:, :, 1:],
@@ -66,9 +66,10 @@ class Buffer():
     def punyty(self, t):
 
         # self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
-        self.cube.rotate(Vector3(0, math.sin(0.2*t), math.cos(0.3*t)))
+        self.cube.rotate(Vector3(0, math.sin(0.23*t), math.cos(0.15*t)))
+        self.cube.color = Vector3(sin(.1*t), cos(.05*t), sin(0.1*t)*cos(0.05*t))
         # self.cube.position = Vector3(0, 0, -15 + self.hydra.z*10)
-        # self.cube.position = Vector3(0, math.sin(t), 0)
+        # self.cube.position = Vector3(sin(t), cos(t), 25)
         self.renderer.render(self.scene)
 
     def starfield(self, t):
@@ -90,74 +91,52 @@ class Buffer():
         green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
         self.grid[:, :, 0] = blue
 
-    def circle(self, t, color=(0, .2, 1.0), weight=1.0):
-        radius = 0.3**2
-        y_off = 0.25 + 0.5*sin(1*t)
-        x_off = 0.25 + 0.5*cos(1.1*t)
+    def circle(self, t, color=(.7, .4, .2), weight=1.0):
+        radius = 0.05
+
+        # y_off = self.hydra.y
+        # x_off = 1-self.hydra.x
+        y_off = 0.25 + 0.5*sin(0.5*t)
+        x_off = 0.25 + 0.5*cos(0.501*t)
+
+        color = (self.hydra.a, self.hydra.b, self.hydra.c)
         mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
         self.grid[mask, :] += weight * np.array(color)
 
     def tent(self, t, color=(.7, .2, .4), weight=1.0):
         """ similar to a circle but like a circus tent """
-        r = 1*(sin(0.3*t)+2)
-        tent = np.clip(1-np.sqrt((r*(self.xx-0.5))**2+ (r*(self.yy-0.5))**2), 0, 1)
+        r = 0.3 
+        # r = 1*(sin(0.3*t)+2)
+        tent = np.clip(1-np.sqrt((r*(self.xx-self.hydra.x))**2+ (r*(self.yy-self.hydra.y))**2), 0, 1)
         r,g,b = color
         self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
-        self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * sin(t) * tent)
+        self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * g * tent)
         self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
-
-    def draw_line(self, rgb, pts):
-        assert len(pts) == 4
-        # if points lie outside uv, find the intersection points
-        intersections = geom.line_intersects_uv(*pts)
-        if len(intersections) == 2:
-            x0, y0 = intersections[0]
-            x1, y1 = intersections[1]
-        elif len(intersections) == 1:
-            x0, y0 = intersections[0]
-            if geom.point_in_uv(*pts[:2]):
-                x1, y1 = pts[:2]
-            elif geom.point_in_uv(*pts[2:]):
-                x1, y1 = pts[2:]
-            else:
-                return
-        elif geom.point_in_uv(*pts[:2]) and geom.point_in_uv(*pts[2:]):
-            x0, y0, x1, y1 = pts
-        else:
-            return
-
-        ix0 = int(x0 * (self.width-1))
-        iy0 = int(y0 * (self.height-1))
-        ix1 = int(x1 * (self.width-1))
-        iy1 = int(y1 * (self.height-1))
-        rr, cc, val = line_aa(ix0, iy0, ix1, iy1)
-        r,g,b = rgb
-        self.grid[rr, cc, 0] += r * val
-        self.grid[rr, cc, 1] += g * val
-        self.grid[rr, cc, 2] += b * val
 
     def lines(self, t):
         rgb = (0.2, 0.6, 0.8)
         f = 00.8
         r = 0.9
         pts = (
-            r*np.sin(f*t) + 0.5,
-            r*np.cos(f*t) + 0.5,
-            r*np.sin(f*t + np.pi) + 0.5,
-            r*np.cos(f*t + np.pi) + 0.5,
+            int(self.width * (r*np.sin(f*t) + 0.5)),
+            int(self.height * (r*np.cos(f*t) + 0.5)),
+            int(self.width * (r*np.sin(f*t + np.pi) + 0.5)),
+            int(self.height * (r*np.cos(f*t + np.pi) + 0.5)),
         )
-        self.draw_line(rgb, pts)
+        self.renderer.draw_line(pts, rgb)
 
     def hydra_line(self, t):
-        rgb = (0.1, 0.2, 0.9)
-        y = self.hydra.pulse
+        rgb = (self.hydra.a, self.hydra.b, self.hydra.c)
+        x = self.hydra.x
+        y = self.hydra.y
         pts = (
-            y, 0, y, 1
+            0, 0, int(self.width*y), int(self.height*x)
         )
-        self.draw_line(rgb, pts)
+        self.renderer.draw_line(pts, rgb)
 
-    def clear(self):
-        self.grid[:] = 0.0
+    def clear(self, rgb):
+        # self.grid[:] = rgb
+        self.grid[:, :, :] = self.layer_op(self.grid[:, :, :], rgb)
 
     def fade(self, amt=0.995):
         self.grid[:] *= amt
@@ -187,7 +166,6 @@ class Buffer():
 
         y = weight * alpha * im
         self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], y)
-        # blit[:] = y[:]
 
     def select_op(self):
         if self.hydra.x < 0.3:
@@ -201,14 +179,14 @@ class Buffer():
 
     def update(self, t):
         # self.select_op()
-        # self.clear()
         self.fade(0.90)
-        self.punyty(t)
+        # self.clear((0.08*sin(t), 0.08*cos(t), .01))
+        # self.punyty(t)
         # self.lines(t)
         # self.tent(t, weight=0.4)
         # self.test_grid(t, width=2, weight=1)
-        # self.hydra_line(t)
-        # self.circle(t, weight=cos(0.5*t))
+        self.hydra_line(t)
+        # self.circle(t)
         # self.image(t, 'lena.png', scale=0.37)
         # self.image(t, 'heart.png', scale=0.4)
         # self.image(t, 'E.png')
