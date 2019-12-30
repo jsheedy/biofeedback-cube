@@ -81,9 +81,11 @@ class Buffer():
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
-        v = int(sin(0.8*t)*self.height)
-        color = np.array((0.5, .1, 0.1*sin(0.2*t)))
-        self.grid[v:v+width, :, :] += weight * color
+        v = int(sin(1.7*t)*(self.height-1))
+        color = [.10, .8, .11]
+        # color = weight * np.array((0.5, .1, 0.1*sin(0.2*t)))
+        # self.grid[v:v+width, :, :] += color
+        self.grid[v, :, :] += color
 
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
@@ -178,24 +180,43 @@ class Buffer():
             self.locals['layer_op'] = operator.iadd
 
     def update(self, t):
-        # self.select_op()
+        self.select_op()
         self.fade(0.90)
         # self.clear((0.08*sin(t), 0.08*cos(t), .01))
-        # self.punyty(t)
         # self.lines(t)
-        # self.tent(t, weight=0.4)
-        # self.test_grid(t, width=2, weight=1)
-        self.hydra_line(t)
-        # self.circle(t)
-        # self.image(t, 'lena.png', scale=0.37)
-        # self.image(t, 'heart.png', scale=0.4)
-        # self.image(t, 'E.png')
+        if self.hydra.mode == 0:
+            self.tent(t, weight=0.4)
+
+        elif self.hydra.mode == 1:
+            self.hydra_line(t)
+
+        elif self.hydra.mode == 2:
+            self.circle(t)
+
+        elif self.hydra.mode == 3:
+            self.test_grid(t, width=2, weight=1)
+
+        elif self.hydra.mode == 4:
+            self.image(t, 'lena.png', scale=0.37)
+
+        elif self.hydra.mode == 5:
+            self.image(t, 'heart.png', scale=0.4)
+
+        elif self.hydra.mode == 6:
+            self.image(t, 'E.png')
+
+        elif self.hydra.mode == 7:
+            self.starfield(t)
+
+        elif self.hydra.mode == 8:
+            self.punyty(t)
+
         # self.blur(1.2)
         # self.bright(0.99)
-        # self.starfield(t)
 
     def get_grid(self):
-        return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
+        return self.buffer[self.iy, self.ix, :]
+        # return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)

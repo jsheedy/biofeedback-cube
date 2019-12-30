@@ -38,6 +38,7 @@ class Hydra():
     b: float = 0.5
     c: float = 0.5
     pulse: float = 0.5
+    mode: int = 3
 
 rows = 68
 cols = 8
@@ -88,15 +89,10 @@ def render(rows, cols, reload=False):
 
 @asyncio.coroutine
 def async_render(rows, cols, reload=False):
-    # _t0 = time.time()
     while True:
         grid = render(rows, cols, reload=reload)
         display.draw(grid)
-        # t = time.time()
-        # dt = t-_t0
-        # _t0 = t
-        # print(dt)
-        yield from asyncio.sleep(0.005)
+        yield from asyncio.sleep(0.002)
 
 
 def process_render(rows, cols, reload=False):

@@ -28,6 +28,16 @@ def pulse_handler(addr, value, hydra=None, **kwargs):
     hydra.pulse = value
 
 
+def mode_handler(addr, value, hydra=None, **kwargs):
+    if int(value) == 1:
+        mode_l = addr.split('/')
+        mode_row = int(mode_l[-2]) - 1
+        mode_col = int(mode_l[-1]) - 1
+        mode = mode_col * 3 + mode_row
+        logger.info(f'setting hydra mode {mode}')
+        hydra.mode = mode 
+
+
 def shutdown_handler(addr, value, **kwargs):
     logger.critical("shutting down")
     os.system('sudo shutdown -r now')
@@ -41,6 +51,7 @@ def server(host, port, hydra):
         '/hydra/a': partial(hydra_handler, hydra=hydra),
         '/hydra/b': partial(hydra_handler, hydra=hydra),
         '/hydra/c': partial(hydra_handler, hydra=hydra),
+        '/mode/*': partial(mode_handler, hydra=hydra),
         '/hydra/xy': partial(hydraxy_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
         '*': lambda *args: logger.info(str(args))
