@@ -81,8 +81,13 @@ class Buffer():
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
-        v = int(sin(1.7*t)*(self.height-1))
-        color = [.10, .8, .11]
+        if (t - self.hydra.last_update) > 2:
+            v = int(sin(1.7*t)*(self.height-1))
+        else: 
+            v = int((self.height-1) * self.hydra.a)
+
+        color = colorsys.hsv_to_rgb(sin(.1*t), .2 + .4*cos(.1*t), .2 + 0.4*cos(t)*sin(t))  
+        # color = [.10, .8, .11]
         # color = weight * np.array((0.5, .1, 0.1*sin(0.2*t)))
         # self.grid[v:v+width, :, :] += color
         self.grid[v, :, :] += color
@@ -107,7 +112,7 @@ class Buffer():
 
     def tent(self, t, color=(.7, .2, .4), weight=1.0):
         """ similar to a circle but like a circus tent """
-        r = 0.3 
+        r = 0.1 
         # r = 1*(sin(0.3*t)+2)
         tent = np.clip(1-np.sqrt((r*(self.xx-self.hydra.x))**2+ (r*(self.yy-self.hydra.y))**2), 0, 1)
         r,g,b = color
@@ -203,7 +208,7 @@ class Buffer():
             self.image(t, 'heart.png', scale=0.4)
 
         elif self.hydra.mode == 6:
-            self.image(t, 'E.png')
+            self.image(t, 'E.png', scale=0.2)
 
         elif self.hydra.mode == 7:
             self.starfield(t)
