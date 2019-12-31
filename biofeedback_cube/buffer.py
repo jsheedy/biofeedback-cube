@@ -243,8 +243,9 @@ class Buffer():
         # self.bright(0.99)
 
     def get_grid(self):
-        ix = slice(0, self.width, int(self.width/self.cols))
-        return self.buffer[:, ix, :]
+        slice_width = self.width // self.cols
+        s = slice(0, slice_width * self.cols, slice_width)
+        return self.buffer[:, s, :]
         # return self.buffer[self.iy, self.ix, :]
         # return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
 
