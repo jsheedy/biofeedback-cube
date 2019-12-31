@@ -39,7 +39,7 @@ class Hydra():
     c: float = 0.5
     pulse: float = 0.5
     mode: int = 3
-    last_update: float = 0 
+    last_update: float = 0
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
