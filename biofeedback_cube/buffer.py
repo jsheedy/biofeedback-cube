@@ -10,28 +10,39 @@ from punyty.objects import Cube
 from punyty.renderers import ArrayRenderer
 from punyty.scene import Scene
 from scipy.ndimage import filters
-from scipy.ndimage import rotate
-from skimage.draw import line_aa
 
 from biofeedback_cube.utils import open_image, sin, cos
-from biofeedback_cube import geom
 
 
 logger = logging.getLogger(__name__)
 
 
 class Buffer():
-    """ buffer is size WxHx4. The last channel is (1,R,G,B), so make
-    transformation to Dotstar LED format 0xffrrggbb simpler as expense
-    of minor complexity here """
+    """ Holds an array Buffer.buffer of size=size, SxSx4 on which to draw.
+    The last channel is (1,R,G,B), so make
+    transformation to Dotstar LED format 0xffrrggbb simpler at the expense
+    of minor complexity here
 
-    def __init__(self, rows, cols, hydra=None):
+    Buffer.get_grid samples the buffer to create an array of the correct size to
+    display on an LED array of size (rows,cols). For example Biofeedback cube is 68x8
+    and it is evenly sampled from the size=80 buffer by get_grid
+
+    hydra is a class which contains all user interface controls, e.g. position
+    of a slider or joystick
+
+    """
+
+    def __init__(self, rows, cols, size=None, hydra=None):
         self.rows = rows
         self.cols = cols
-        size = 80
-        self.height = size
-        self.width = size
+
+        self.height = size or rows
+        self.width = size or rows  # Biofeedback Cube mark I is 68Hx8W
+
         self.hydra = hydra
+
+        self.buffer = np.zeros(shape=(self.height, self.width, 4), dtype=np.float64)
+
         self.yy, self.xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
 
         self.ix, self.iy = np.meshgrid(
@@ -41,11 +52,12 @@ class Buffer():
         self.iix = np.arange(self.width, dtype=np.int32)
         self.iiy = np.arange(self.height, dtype=np.int32)
 
-        self.buffer = np.zeros(shape=(self.height, self.width, 4), dtype=np.float64)
         self.locals = {
             'layer_op': operator.iadd,
             's': -1
         }
+
+        # for punytty mode, should isolate this
         self.scene = Scene()
         self.cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(0, 0, 30))
         self.scene.add_object(self.cube)
@@ -57,11 +69,17 @@ class Buffer():
 
     @property
     def grid(self):
+        """ grid is a view of the buffer with only 3 channels for color instead of 4 channels including
+        the extra 0xff as described in the Buffer docstring. This is an easier canvas to draw upon """
         return self.buffer[:, :, 1:]
 
     @property
     def layer_op(self):
         return self.locals['layer_op']
+
+    def hydra_fresh(self, t):
+        """ return boolean whether hydra has been updated recently """
+        return (t - self.hydra.last_update) > 2
 
     def punyty(self, t):
 
@@ -81,12 +99,12 @@ class Buffer():
             self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
-        if (t - self.hydra.last_update) > 2:
+        if self.hydra_fresh(t):
             v = int(sin(1.7*t)*(self.height-1))
-        else: 
+        else:
             v = int((self.height-1) * self.hydra.a)
 
-        color = colorsys.hsv_to_rgb(sin(.1*t), .2 + .4*cos(.1*t), .2 + 0.4*cos(t)*sin(t))  
+        color = colorsys.hsv_to_rgb(sin(.1*t), .2 + .4*cos(.1*t), .2 + 0.4*cos(t)*sin(t))
         # color = [.10, .8, .11]
         # color = weight * np.array((0.5, .1, 0.1*sin(0.2*t)))
         # self.grid[v:v+width, :, :] += color
@@ -101,21 +119,25 @@ class Buffer():
     def circle(self, t, color=(.7, .4, .2), weight=1.0):
         radius = 0.05
 
-        # y_off = self.hydra.y
-        # x_off = 1-self.hydra.x
-        y_off = 0.25 + 0.5*sin(0.5*t)
-        x_off = 0.25 + 0.5*cos(0.501*t)
+        if self.hydra_fresh(t):
+            y = self.hydra.y
+            x = 1-self.hydra.x
+        else:
+            y = 0.25 + 0.5*sin(0.5*t)
+            x = 0.25 + 0.5*cos(0.501*t)
 
         color = (self.hydra.a, self.hydra.b, self.hydra.c)
-        mask = ((self.xx-x_off)**2 + (self.yy - y_off)**2) < radius
+        mask = ((self.xx-x)**2 + (self.yy - y)**2) < radius
         self.grid[mask, :] += weight * np.array(color)
 
     def tent(self, t, color=(.7, .2, .4), weight=1.0):
         """ similar to a circle but like a circus tent """
-        r = 0.1 
-        # r = 1*(sin(0.3*t)+2)
-        tent = np.clip(1-np.sqrt((r*(self.xx-self.hydra.x))**2+ (r*(self.yy-self.hydra.y))**2), 0, 1)
-        r,g,b = color
+        r = 0.1
+        x = self.hydra.x
+        y = self.hydra.y
+
+        tent = np.clip(1-np.sqrt((r*(self.xx-x))**2 + (r*(self.yy-y))**2), 0, 1)
+        r, g, b = color
         self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
         self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * g * tent)
         self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
@@ -154,16 +176,18 @@ class Buffer():
     def bright(self, bright=1.0):
         self.grid[:] *= bright
 
-    def image(self, t, fname, x0=0, y0=15, weight=1.0, scale=1.0):
-        rgba = open_image(fname, scale=scale)
-        # rgba = rotate(rgba, np.pi/2)
+    def image(self, t, fname, scale=1.0):
 
-        y0 = int(30*t)
-        x0 = int(30*t)
-        # y0 = int(sin(99*t)*self.height)
+        if self.hydra_fresh(t):
+            x0 = int(self.width * self.hydra.x)
+            y0 = int(self.height * self.hydra.y)
+        else:
+            y0 = int(30*sin(t))
+            x0 = int(30*sin(t))
+
+        rgba = open_image(fname, scale=scale)
         im = rgba[:, :, :3]
-        # alpha = np.expand_dims(rgba[:, :, 3], 2)
-        alpha = 1.0
+
         h, w = im.shape[:2]
 
         x_i = np.take(self.iix, range(x0, x0+w), mode='wrap')
@@ -171,8 +195,7 @@ class Buffer():
 
         xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
-        y = weight * alpha * im
-        self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], y)
+        self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], im)
 
     def select_op(self):
         if self.hydra.x < 0.3:
@@ -199,13 +222,13 @@ class Buffer():
             self.circle(t)
 
         elif self.hydra.mode == 3:
-            self.test_grid(t, width=2, weight=1)
+            self.test_grid(t, width=2)
 
         elif self.hydra.mode == 4:
-            self.image(t, 'lena.png', scale=0.37)
+            self.image(t, 'lena.png', scale=0.17)
 
         elif self.hydra.mode == 5:
-            self.image(t, 'heart.png', scale=0.4)
+            self.image(t, 'heart.png', scale=0.1)
 
         elif self.hydra.mode == 6:
             self.image(t, 'E.png', scale=0.2)
@@ -220,7 +243,9 @@ class Buffer():
         # self.bright(0.99)
 
     def get_grid(self):
-        return self.buffer[self.iy, self.ix, :]
+        ix = slice(0, self.width, int(self.width/self.cols))
+        return self.buffer[:, ix, :]
+        # return self.buffer[self.iy, self.ix, :]
         # return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
 
     def __keyframes(cols, rows):

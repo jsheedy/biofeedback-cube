@@ -76,7 +76,7 @@ class SDLDisplay():
             elif event.type == sdl2.SDL_QUIT:
                 self.state.running = False
 
-    def draw(self, grid):
+    def draw(self, grid, gamma=1.0):
         self.handle_events()
         if not self.state.running:
             raise exceptions.UserQuit('user quit')

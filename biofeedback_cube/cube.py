@@ -47,11 +47,11 @@ class Hydra():
             self.last_update = time.time() - t0
 
 
-rows = 68
-cols = 8
+ROWS = 68
+COLS = 8
 
 hydra = Hydra()
-buff = buffer.Buffer(rows, cols, hydra=hydra)
+buff = buffer.Buffer(ROWS, COLS, hydra=hydra)
 
 
 def parse_args():
@@ -76,7 +76,7 @@ def main_loop(coros):
 
 
 def render(rows, cols, reload=False):
-    
+
     t = time.time() - t0
     try:
         if reload:
@@ -99,23 +99,20 @@ def async_render(rows, cols, reload=False):
     while True:
         grid = render(rows, cols, reload=reload)
         display.draw(grid)
-        yield from asyncio.sleep(0.002)
+        yield from asyncio.sleep(0.005)
 
 
 def process_render(rows, cols, reload=False):
-    # _t0 = time.time()
     while True:
         grid = render(rows, cols, reload=reload)
         queue.put(grid)
-        # t = time.time()
-        # dt = t-_t0
-        # _t0 = t
-        # print(dt)
+
 
 def process_draw():
     while True:
         grid = queue.get()
         display.draw(grid)
+
 
 @asyncio.coroutine
 def pulse_to_osc(host, port):
@@ -138,7 +135,8 @@ def async_main(rows, cols, args):
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))
- 
+
+
 def process_main(rows, cols, reload):
 
     p1 = Process(target=process_render, args=(rows, cols), kwargs={'reload':reload})
@@ -149,10 +147,9 @@ def process_main(rows, cols, reload):
     p2.join()
 
 
-
 def main():
     args = parse_args()
-    display.init(rows, cols, sdl=args.simulator)
+    display.init(ROWS, COLS, sdl=args.simulator)
 
     reload = args.reload or os.getenv('RELOAD')
 
@@ -162,7 +159,8 @@ def main():
         logger.info(f'live coding mode disabled')
 
     # process_main(rows, cols, args.reload)
-    async_main(rows, cols, args)
+    async_main(ROWS, COLS, args)
+
 
 if __name__ == '__main__':
     main()
