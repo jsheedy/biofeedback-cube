@@ -79,7 +79,7 @@ class Buffer():
 
     def hydra_fresh(self, t):
         """ return boolean whether hydra has been updated recently """
-        return (t - self.hydra.last_update) > .7
+        return (t - self.hydra.last_update) < .7
 
     def punyty(self, t):
 
@@ -100,17 +100,14 @@ class Buffer():
 
     def test_grid(self, t, width=1, weight=1.0):
         if self.hydra_fresh(t):
-            y = int(sin(1.7*t)*(self.height-1))
-        else:
             y = int((self.height-1) * self.hydra.a)
+        else:
+            y = int(sin(2.3*t)*(self.height-1))
 
         h = sin(.2*t)
         s = .5 + .5*cos(.1*t)
         v = .5 + 0.5*cos(t)*sin(t)
         color = colorsys.hsv_to_rgb(h, s, v)
-        # color = [.10, .8, .11]
-        # color = weight * np.array((0.5, .1, 0.1*sin(0.2*t)))
-        # self.grid[v:v+width, :, :] += color
         self.grid[y, :, :] += color
 
     def __sunrise(self, t):

@@ -1,0 +1,11 @@
+[Unit]
+Description=pulse sensor to OSC 
+
+[Service]
+# Type=exec
+ExecStart=/home/pi/cube/biofeedback_cube/pulse_osc.py
+WorkingDirectory=/home/pi/cube/
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

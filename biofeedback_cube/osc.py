@@ -15,6 +15,7 @@ def hydraxy_handler(addr, x, y, hydra=None, **kwargs):
     hydra.x = x
     hydra.y = y
 
+
 def hydra_handler(addr, value, hydra=None, **kwargs):
     dim = addr.split('/')[-1]
     if dim == 'a':
@@ -23,6 +24,7 @@ def hydra_handler(addr, value, hydra=None, **kwargs):
         hydra.b = value
     if dim == 'c':
         hydra.c = value
+
 
 def pulse_handler(addr, value, hydra=None, **kwargs):
     hydra.pulse = value
@@ -47,14 +49,14 @@ def shutdown_handler(addr, value, **kwargs):
 def server(host, port, hydra):
 
     addr_map = {
-        # '/pulse': partial(pulse_handler, hydra=hydra),
+        '/pulse': partial(pulse_handler, hydra=hydra),
         '/hydra/a': partial(hydra_handler, hydra=hydra),
         '/hydra/b': partial(hydra_handler, hydra=hydra),
         '/hydra/c': partial(hydra_handler, hydra=hydra),
         '/mode/*': partial(mode_handler, hydra=hydra),
         '/hydra/xy': partial(hydraxy_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
-        '*': lambda *args: logger.info(str(args))
+        # '*': lambda *args: logger.info(str(args))
     }
 
     dsp = dispatcher.Dispatcher()
