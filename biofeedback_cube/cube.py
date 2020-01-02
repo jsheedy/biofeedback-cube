@@ -16,7 +16,6 @@ import uvloop
 
 from biofeedback_cube import exceptions
 from biofeedback_cube import osc
-from biofeedback_cube import pulse_sensor
 from biofeedback_cube import buffer
 from biofeedback_cube import display
 
@@ -114,21 +113,8 @@ def process_draw():
         display.draw(grid)
 
 
-@asyncio.coroutine
-def pulse_to_osc(host, port):
-
-    # osc_client = udp_client.SimpleUDPClient('192.168.0.255', 37337, allow_broadcast=True)
-    osc_client = udp_client.SimpleUDPClient(host, port)
-
-    while True:
-        x = pulse_sensor.normalized_read()
-        osc_client.send_message("/pulse", x)
-        yield from asyncio.sleep(SAMPLING_DELAY)
-
-
 def async_main(rows, cols, args):
     coros = (
-        # pulse_to_osc(args.host, args.port),
         async_render(rows, cols, reload=args.reload),
         osc.server(args.host, args.port, hydra),
     )

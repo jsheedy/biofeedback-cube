@@ -1,4 +1,4 @@
-place this service file in /etc/systemd/system/cube.service
+place these service files in /etc/systemd/system/
 
 `sudo systemctl enable cube`
 `sudo systemctl start cube`
