@@ -79,7 +79,8 @@ class Buffer():
 
     def hydra_fresh(self, t):
         """ return boolean whether hydra has been updated recently """
-        return (t - self.hydra.last_update) < .7
+        dt = t - self.hydra.last_update
+        return dt < .3
 
     def punyty(self, t):
 
@@ -102,13 +103,25 @@ class Buffer():
         if self.hydra_fresh(t):
             y = int((self.height-1) * self.hydra.a)
         else:
-            y = int(sin(2.3*t)*(self.height-1))
+            f = (self.hydra.b / .5) ** 2
+            y = int(sin(f*t)*(self.height-1))
 
         h = sin(.2*t)
         s = .5 + .5*cos(.1*t)
         v = .5 + 0.5*cos(t)*sin(t)
         color = colorsys.hsv_to_rgb(h, s, v)
         self.grid[y, :, :] += color
+
+    def pulse_line(self, t, width=2):
+        y = int((self.height-1) * self.hydra.pulse)
+
+        h = sin(.2*t)
+        s = .5 + .5*cos(.1*t)
+        v = .5 + 0.5*cos(t)*sin(t)
+        color = colorsys.hsv_to_rgb(h, s, v)
+
+        self.grid[y, :, :] += color
+
 
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
@@ -225,7 +238,7 @@ class Buffer():
             self.test_grid(t, width=2)
 
         elif self.hydra.mode == 4:
-            self.image(t, 'lena.png', scale=0.17)
+            self.pulse_line(t, width=2)
 
         elif self.hydra.mode == 5:
             self.image(t, 'heart.png', scale=0.1)

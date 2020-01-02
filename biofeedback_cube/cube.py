@@ -42,7 +42,7 @@ class Hydra():
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        if name != 'last_update':
+        if name not in ('last_update', 'pulse'):
             self.last_update = time.time() - t0
 
 
