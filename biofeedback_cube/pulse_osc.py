@@ -12,9 +12,9 @@ from pythonosc import udp_client
 
 logger = logging.getLogger(__name__)
 
-FREQ = 40
+FREQ = 60 
 DELAY = 1 / FREQ
-BUF_LEN = FREQ * 5
+BUF_LEN = FREQ * 2
 PULSE_SENSOR_ADDR = 0x09
 
 buffer = collections.deque([512]*BUF_LEN, BUF_LEN)
@@ -47,26 +47,26 @@ def read():
 def normalized_read():
 
     val = read()
-    # buffer.append(val)
-    # min_val = min(buffer)
-    # val_range = max(buffer) - min_val
+    buffer.append(val)
+    min_val = min(buffer)
+    val_range = max(buffer) - min_val
 
-    min_val = 300
-    val_range = 500
+    # min_val = 300
+    # val_range = 500
 
     # if val_range > 0:
     normal = ((val - min_val) / val_range)
     # else:
         # normal = 0
-
-    return np.clip(normal, 0, 1)
+    return normal
+    # return np.clip(normal, 0, 1)
 
 
 def main():
     logger.info("collecting heartbeat data . . . ")
     while True:
         value = normalized_read()
-        logger.debug(f'read {value}')
+        # logger.debug(f'read {value}')
         send_osc(value)
         time.sleep(DELAY)
 
