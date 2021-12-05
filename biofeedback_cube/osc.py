@@ -7,6 +7,8 @@ import os
 from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 
+from biofeedback_cube.audio import set_gain
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,15 @@ def hydra_handler(addr, value, hydra=None, **kwargs):
         hydra.b = value
     if dim == 'c':
         hydra.c = value
+
+
+def play_handler(addr, value, hydra=None, **kwargs):
+    hydra.play = bool(value)
+
+
+def gain_handler(addr, value, hydra=None, **kwargs):
+    set_gain(value)
+    hydra.gain = value
 
 
 def pulse_handler(addr, value, hydra=None, **kwargs):
@@ -49,6 +60,8 @@ def shutdown_handler(addr, value, **kwargs):
 def server(host, port, hydra):
 
     addr_map = {
+        '/play': partial(play_handler, hydra=hydra),
+        '/gain': partial(gain_handler, hydra=hydra),
         '/pulse': partial(pulse_handler, hydra=hydra),
         '/hydra/a': partial(hydra_handler, hydra=hydra),
         '/hydra/b': partial(hydra_handler, hydra=hydra),

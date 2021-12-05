@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import concurrent
 import importlib
 import logging
 from multiprocessing import Process, Queue
@@ -14,6 +15,7 @@ from dataclasses import dataclass
 from pythonosc import udp_client
 import uvloop
 
+from biofeedback_cube.audio import play_sample
 from biofeedback_cube import exceptions
 from biofeedback_cube import osc
 from biofeedback_cube import buffer
@@ -37,7 +39,9 @@ class Hydra():
     b: float = 0.5
     c: float = 0.5
     pulse: float = 0.5
-    mode: int = 3
+    play: bool = True
+    gain: float = 0.0
+    mode: int = 8
     last_update: float = 0
 
     def __setattr__(self, name, value):
@@ -98,7 +102,7 @@ def async_render(rows, cols, reload=False):
     while True:
         grid = render(rows, cols, reload=reload)
         display.draw(grid)
-        yield from asyncio.sleep(0.005)
+        yield from asyncio.sleep(0.002)
 
 
 def process_render(rows, cols, reload=False):
@@ -113,8 +117,26 @@ def process_draw():
         display.draw(grid)
 
 
+@asyncio.coroutine
+def audio(hydra):
+    while True:
+        if hydra.play:
+            executor = concurrent.futures.ProcessPoolExecutor()
+            # executor = concurrent.futures.ThreadPoolExecutor()
+            fname = '/home/pi/Music/lowAsharp2.wav'
+            loop = asyncio.get_event_loop()
+            task = loop.run_in_executor(executor, play_sample, fname)
+            while not task.done() and hydra.play:
+                yield from asyncio.sleep(.1)
+            if not task.done():
+                task.cancel()
+            executor.shutdown(wait=False)
+        yield from asyncio.sleep(.1)
+
+
 def async_main(rows, cols, args):
     coros = (
+        # audio(hydra),
         async_render(rows, cols, reload=args.reload),
         osc.server(args.host, args.port, hydra),
     )

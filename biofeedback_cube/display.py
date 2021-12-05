@@ -96,10 +96,9 @@ class SDLDisplay():
 
 
 class DotstarDisplay():
-    def __init__(self, width, height, faces=({}, {}, {'flip': True})):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.faces = faces
         self.strip = Adafruit_DotStar()
         self.strip.begin()
 
@@ -131,15 +130,7 @@ class DotstarDisplay():
         u8[0::4] = 0xff  # dotstar format is (0xff,r,g,b)
         _bytes = u8.tobytes()
 
-        # TODO: implement face flipping
-        # all_faces = b''
-        # for face in self.faces:
-            # if 'flip' in face:
-                # all_faces += _bytes[::-1]
-            # else:
-                # all_faces += _bytes
-        # self.strip.show(all_faces)
-        self.strip.show(len(self.faces) * _bytes )
+        self.strip.show(_bytes )
 
 
 def init(rows, cols, sdl=True):
