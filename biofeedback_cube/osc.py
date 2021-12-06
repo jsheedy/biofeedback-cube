@@ -7,7 +7,7 @@ import os
 from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 
-from biofeedback_cube.audio import set_gain
+# from biofeedback_cube.audio import set_gain
 
 
 logger = logging.getLogger(__name__)
@@ -20,12 +20,7 @@ def hydraxy_handler(addr, x, y, hydra=None, **kwargs):
 
 def hydra_handler(addr, value, hydra=None, **kwargs):
     dim = addr.split('/')[-1]
-    if dim == 'a':
-        hydra.a = value
-    if dim == 'b':
-        hydra.b = value
-    if dim == 'c':
-        hydra.c = value
+    setattr(hydra, dim, value)
 
 
 def play_handler(addr, value, hydra=None, **kwargs):
@@ -61,13 +56,13 @@ def server(host, port, hydra):
 
     addr_map = {
         '/play': partial(play_handler, hydra=hydra),
-        '/gain': partial(gain_handler, hydra=hydra),
         '/pulse': partial(pulse_handler, hydra=hydra),
         '/hydra/a': partial(hydra_handler, hydra=hydra),
         '/hydra/b': partial(hydra_handler, hydra=hydra),
         '/hydra/c': partial(hydra_handler, hydra=hydra),
-        '/mode/*': partial(mode_handler, hydra=hydra),
+        '/hydra/d': partial(hydra_handler, hydra=hydra),
         '/hydra/xy': partial(hydraxy_handler, hydra=hydra),
+        '/mode/*': partial(mode_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
         # '*': lambda *args: logger.info(str(args))
     }
@@ -83,3 +78,4 @@ def server(host, port, hydra):
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
     transport, protocol = yield from server.create_serve_endpoint()
     yield from asyncio.sleep(86400*7)
+

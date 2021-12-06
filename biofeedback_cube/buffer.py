@@ -84,21 +84,26 @@ class Buffer():
 
     def punyty(self, t):
 
-        # self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
-        # self.cube.rotate(Vector3(.50, math.sin(0.53*t), .50))
-        self.cube.rotate(Vector3(math.sin(.5*t), math.sin(0.53*t), math.cos(0.45*t)))
-        self.cube.color = Vector3(sin(.1*t), cos(.05*t), sin(0.1*t)*cos(0.05*t))
-        # self.cube.position = Vector3(0, 0, -15 + self.hydra.z*10)
+        if self.hydra.d < 0.2:
+            self.cube.rotate(Vector3(-3+self.hydra.a*6, -3+self.hydra.b*6, -3+self.hydra.c*6))
+        else:
+            self.cube.rotate(Vector3(math.sin(.5*t), math.sin(0.53*t), math.cos(0.45*t)))
+
+        self.cube.color = Vector3(self.hydra.a, self.hydra.b, self.hydra.c)
+        # self.cube.color = Vector3(sin(.1*t), .1 + .9*cos(.05*t), sin(0.1*t)*cos(0.05*t))
+        # self.cube.position = Vector3(-.350, 0.5*math.sin(t/2), 1.3 + 0.3 * math.sin(t/3))
         # self.cube.position = Vector3(sin(t), cos(t), 25)
         self.renderer.render(self.scene)
 
     def starfield(self, t):
-        marker = int(t*5)
-        if marker > self.locals['s']:
-            self.locals['s'] = marker
+        # marker = int(t*5)
+        # if marker > self.locals['s']:
+            # self.locals['s'] = marker
+        for i in range(int(30*self.hydra.x)):
             y = random.randint(0, self.height-1)
             x = random.randint(0, self.width-1)
-            self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
+            self.grid[y, x, :] = random.random(), random.random(), random.random() 
+            # self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
         if self.hydra_fresh(t):
@@ -152,9 +157,13 @@ class Buffer():
 
         tent = np.clip(1-np.sqrt((r*(self.xx-x))**2 + (r*(self.yy-y))**2), 0, 1)
         r, g, b = color
-        self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
-        self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * g * tent)
-        self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
+
+        # self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
+        # self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * g * tent)
+        # self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
+        self.grid[:, :, 0] = weight * r * tent
+        self.grid[:, :, 1] = weight * g * tent
+        self.grid[:, :, 2] = weight * b * tent
 
     def lines(self, t):
         rgb = (0.2, 0.6, 0.8)
@@ -178,10 +187,10 @@ class Buffer():
         self.renderer.draw_line(pts, rgb)
 
     def clear(self, rgb):
-        # self.grid[:] = rgb
-        self.grid[:, :, :] = self.layer_op(self.grid[:, :, :], rgb)
+        self.grid[:] = rgb
+        # self.grid[:, :, :] = self.layer_op(self.grid[:, :, :], rgb)
 
-    def fade(self, amt=0.995):
+    def fade(self, amt=0.8):
         self.grid[:] *= amt
 
     def blur(self, sigma=2):
@@ -222,8 +231,8 @@ class Buffer():
             self.locals['layer_op'] = operator.iadd
 
     def update(self, t):
-        self.select_op()
-        self.fade(0.90)
+        # self.select_op()
+        self.fade(self.hydra.d)
         # self.clear((0.08*sin(t), 0.08*cos(t), .01))
         # self.lines(t)
         if self.hydra.mode == 0:

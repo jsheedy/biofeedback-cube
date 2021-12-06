@@ -38,6 +38,7 @@ class Hydra():
     a: float = 0.5
     b: float = 0.5
     c: float = 0.5
+    d: float = 0.5
     pulse: float = 0.5
     play: bool = True
     gain: float = 0.0
@@ -166,7 +167,7 @@ def main():
     else:
         logger.info(f'live coding mode disabled')
 
-    # process_main(rows, cols, args.reload)
+    # process_main(ROWS, COLS, args.reload)
     async_main(ROWS, COLS, args)
 
 
