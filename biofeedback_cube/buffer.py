@@ -64,7 +64,8 @@ class Buffer():
         self.renderer = ArrayRenderer(
             target_array=self.buffer[:, :, 1:],
             draw_edges=False,
-            draw_wireframe=False
+            draw_wireframe=False,
+            draw_polys=True
         )
 
     @property

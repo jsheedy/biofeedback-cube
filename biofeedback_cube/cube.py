@@ -102,8 +102,9 @@ def render(rows, cols, reload=False):
 def async_render(rows, cols, reload=False):
     while True:
         grid = render(rows, cols, reload=reload)
+        yield from asyncio.sleep(0.010)
         display.draw(grid)
-        yield from asyncio.sleep(0.002)
+        yield from asyncio.sleep(0.010)
 
 
 def process_render(rows, cols, reload=False):
