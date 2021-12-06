@@ -1,5 +1,5 @@
 """
-realtime plot OSC pulse 
+realtime plot OSC pulse
 """
 
 import argparse
@@ -23,7 +23,7 @@ def pulse_handler(addr, val):
 
 
 def plot():
-    # plt.clf()
+    plt.clf()
     plt.plot(buffer)
     plt.draw()
     plt.pause(0.001)
@@ -48,7 +48,6 @@ async def main():
     # server.serve()
     transport, protocol = await server.create_serve_endpoint()
     await asyncio.sleep(10**30)
-
 
 
 if __name__ == "__main__":
