@@ -87,10 +87,12 @@ class Buffer():
 
         if self.hydra.d < 0.2:
             self.cube.rotate(Vector3(-3+self.hydra.a*6, -3+self.hydra.b*6, -3+self.hydra.c*6))
+            self.cube.color = Vector3(self.hydra.a, self.hydra.b, self.hydra.c)
         else:
-            self.cube.rotate(Vector3(math.sin(.5*t), math.sin(0.53*t), math.cos(0.45*t)))
+            self.cube.rotate(Vector3(math.sin(.2*t), math.sin(0.23*t), math.cos(0.25*t)))
+            color = Vector3(math.sin(.1*t), math.sin(0.03*t), math.cos(0.0515*t))
+            self.cube.color = color
 
-        self.cube.color = Vector3(self.hydra.a, self.hydra.b, self.hydra.c)
         # self.cube.color = Vector3(sin(.1*t), .1 + .9*cos(.05*t), sin(0.1*t)*cos(0.05*t))
         # self.cube.position = Vector3(-.350, 0.5*math.sin(t/2), 1.3 + 0.3 * math.sin(t/3))
         # self.cube.position = Vector3(sin(t), cos(t), 25)
