@@ -191,9 +191,9 @@ class Buffer():
             + np.sin(10 * self.xx * self.yy + .41*tau)
             + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
         )
-        self.grid[:, :, 0] = self.hydra.a * field
-        self.grid[:, :, 1] = self.hydra.b * field
-        self.grid[:, :, 2] = self.hydra.c * field
+        self.grid[:, :, 0] = self.hydra.a * np.sin(field)
+        self.grid[:, :, 1] = self.hydra.b * np.sin(1.2*field + tau)
+        self.grid[:, :, 2] = self.hydra.c * np.sin(0.2*field + 2*tau)
 
     def clear(self, rgb):
         self.grid[:] = rgb
