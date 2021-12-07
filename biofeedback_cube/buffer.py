@@ -195,9 +195,11 @@ class Buffer():
         self.grid[:, :, 1] = self.hydra.b * np.sin(1.2*field + tau)
         self.grid[:, :, 2] = self.hydra.c * np.sin(0.2*field + 2*tau)
 
+    def rgb(self, t):
+        self.clear((self.hydra.a, self.hydra.b, self.hydra.c))
+
     def clear(self, rgb):
         self.grid[:] = rgb
-        # self.grid[:, :, :] = self.layer_op(self.grid[:, :, :], rgb)
 
     def fade(self, amt=0.8):
         self.grid[:] *= amt
@@ -279,6 +281,9 @@ class Buffer():
 
         elif self.hydra.mode == 10:
             self.image(t, 'mario.png', scale=0.28, translate=False)
+
+        elif self.hydra.mode == 11:
+            self.rgb(t)
 
         # self.blur(1.2)
         # self.bright(0.99)
