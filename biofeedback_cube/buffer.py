@@ -195,6 +195,31 @@ class Buffer():
         self.grid[:, :, 1] = self.hydra.b * np.sin(1.2*field + tau)
         self.grid[:, :, 2] = self.hydra.c * np.sin(0.2*field + 2*tau)
 
+    def cmap(self, x):
+        xp = [0, 0.25, 0.5, 0.75, 1.0]
+
+        rp = [0.1, 0.25, 0.5, 0.75, 0.2]
+        gp = [0.1, 0.65, 0.1, 0.05, 0.7]
+        bp = [0.8, 0.6, 0.3, 0.75, 0.4]
+
+        r = np.interp(x, xp, rp)
+        g = np.interp(x, xp, gp)
+        b = np.interp(x, xp, bp)
+        return r,g,b
+
+    def plasma2(self, t):
+        tau = t * self.hydra.d
+        field = (
+            np.sin(2 * np.pi * self.yy + .25*tau)
+            + np.sin(2 * np.pi * self.xx + .6*tau)
+            + np.sin(10 * self.xx * self.yy + .41*tau)
+            + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
+        )
+        r,g,b = self.cmap(field)
+        self.grid[:, :, 0] = r
+        self.grid[:, :, 1] = g
+        self.grid[:, :, 2] = b
+
     def rgb(self, t):
         self.clear((self.hydra.a, self.hydra.b, self.hydra.c))
 
@@ -280,7 +305,10 @@ class Buffer():
             self.plasma(t)
 
         elif self.hydra.mode == 10:
-            self.image(t, 'mario.png', scale=0.28, translate=False)
+            self.plasma2(t)
+
+        # elif self.hydra.mode == 10:
+            # self.image(t, 'mario.png', scale=0.28, translate=False)
 
         elif self.hydra.mode == 11:
             self.rgb(t)
