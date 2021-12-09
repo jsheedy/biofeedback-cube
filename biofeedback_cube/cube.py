@@ -42,7 +42,7 @@ class Hydra():
     pulse: float = 0.5
     play: bool = True
     gain: float = 0.0
-    mode: int = 10 
+    mode: int = 5
     last_update: float = 0
 
     def __setattr__(self, name, value):

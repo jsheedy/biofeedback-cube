@@ -139,7 +139,7 @@ class Buffer():
         radius = 0.05
 
         if self.hydra_fresh(t):
-            y = self.hydra.y
+            y = 1-self.hydra.y
             x = 1-self.hydra.x
         else:
             y = 0.25 + 0.5*sin(0.5*t)
@@ -152,8 +152,8 @@ class Buffer():
     def tent(self, t, color=(.7, .2, .4), weight=1.0):
         """ similar to a circle but like a circus tent """
         r = 0.1
-        x = self.hydra.x
-        y = self.hydra.y
+        x = 1-self.hydra.x
+        y = 1-self.hydra.y
 
         tent = np.clip(1-np.sqrt((r*(self.xx-x))**2 + (r*(self.yy-y))**2), 0, 1)
         r, g, b = color
@@ -236,10 +236,13 @@ class Buffer():
         self.grid[:] *= bright
 
     def image(self, t, fname, scale=1.0, translate=True):
-
-        if self.hydra_fresh(t):
-            x0 = int(self.width * self.hydra.x)
-            y0 = int(self.height * self.hydra.y)
+        # if self.hydra_fresh(t):
+        x0 = int(-10 + 20 * (1-self.hydra.x))
+        y0 = int(-20 + 40 * (1-self.hydra.y))
+        # else:
+            # x0 = -0
+            # y0 = 5
+        """
         else:
             if translate:
                 y0 = int(30*sin(t))
@@ -247,9 +250,10 @@ class Buffer():
             else:
                 y0 = 0
                 x0 = 0
-
+        """
         rgba = open_image(fname, scale=scale)
         im = rgba[:, :, :3]
+        im = im[::-1, :, :]
 
         h, w = im.shape[:2]
 
@@ -258,7 +262,8 @@ class Buffer():
 
         xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
-        self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], im)
+        self.grid[yy_i, xx_i, :] = im
+        # self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], im)
 
     def select_op(self):
         if self.hydra.x < 0.3:
@@ -290,7 +295,7 @@ class Buffer():
             self.pulse_line(t, width=2)
 
         elif self.hydra.mode == 5:
-            self.image(t, 'heart.png', scale=0.1)
+            self.image(t, 'heart.png', scale=0.12)
 
         elif self.hydra.mode == 6:
             self.image(t, 'E.png', scale=0.2)
