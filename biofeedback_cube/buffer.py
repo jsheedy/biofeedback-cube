@@ -59,7 +59,7 @@ class Buffer():
 
         # for punytty mode, should isolate this
         self.scene = Scene()
-        self.cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(0, 0, 30))
+        self.cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3))
         self.scene.add_object(self.cube)
         self.renderer = ArrayRenderer(
             target_array=self.buffer[:, :, 1:],
@@ -85,7 +85,8 @@ class Buffer():
     def punyty(self, t):
 
         # self.cube.rotate(Vector3(self.hydra.x*6, t / 4, self.hydra.y*6))
-        self.cube.rotate(Vector3(0, math.sin(0.23*t), math.cos(0.15*t)))
+        # self.cube.rotate(Vector3(.50, math.sin(0.53*t), .50))
+        self.cube.rotate(Vector3(math.sin(.5*t), math.sin(0.53*t), math.cos(0.45*t)))
         self.cube.color = Vector3(sin(.1*t), cos(.05*t), sin(0.1*t)*cos(0.05*t))
         # self.cube.position = Vector3(0, 0, -15 + self.hydra.z*10)
         # self.cube.position = Vector3(sin(t), cos(t), 25)
