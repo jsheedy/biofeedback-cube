@@ -238,8 +238,8 @@ class Buffer():
 
     def image(self, t, fname, scale=1.0, translate=True):
         # if self.hydra_fresh(t):
-        x0 = int(-10 + 20 * (1-self.hydra.x))
-        y0 = int(-20 + 40 * (1-self.hydra.y))
+        x0 = int(-40 + 80 * (1-self.hydra.x))
+        y0 = int(-40 + 80 * (1-self.hydra.y))
         # else:
             # x0 = -0
             # y0 = 5
@@ -281,7 +281,8 @@ class Buffer():
         self.fade(self.hydra.d)
 
         if self.hydra.mode == 0:
-            self.tent(t, weight=0.4)
+            # self.tent(t, weight=0.4)
+            self.image(t, 'mario.png', scale=0.28, translate=False)
 
         elif self.hydra.mode == 1:
             self.hydra_line(t)
@@ -317,10 +318,7 @@ class Buffer():
             self.rgb(t)
 
         elif self.hydra.mode == 12:
-            self.image(t, 'tv-test.png', scale=0.2)
-
-        elif self.hydra.mode == 13:
-            self.image(t, 'mario.png', scale=0.28, translate=False)
+            self.image(t, 'tv-test.png', scale=0.08)
 
         # self.blur(1.2)
         # self.bright(0.99)
