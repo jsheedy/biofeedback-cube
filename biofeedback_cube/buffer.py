@@ -191,16 +191,16 @@ class Buffer():
             + np.sin(10 * self.xx * self.yy + .41*tau)
             + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
         )
-        self.grid[:, :, 0] = self.hydra.a * np.sin(field)
-        self.grid[:, :, 1] = self.hydra.b * np.sin(1.2*field + tau)
-        self.grid[:, :, 2] = self.hydra.c * np.sin(0.2*field + 2*tau)
+        self.grid[:, :, 0] = self.hydra.a * sin(field)
+        self.grid[:, :, 1] = self.hydra.b * sin(1.2*field + tau)
+        self.grid[:, :, 2] = self.hydra.c * sin(0.2*field + 2*tau)
 
     def cmap(self, x):
-        xp = [0, 0.25, 0.5, 0.75, 1.0]
+        xp = [0.0, 0.66, 0.66, 0.78, 0.78, 0.82, 0.82, 1.0]
 
-        rp = [0.1, 0.25, 0.5, 0.75, 0.2]
-        gp = [0.1, 0.65, 0.1, 0.05, 0.7]
-        bp = [0.8, 0.6, 0.3, 0.75, 0.4]
+        rp = [0.0, 0.00, 1.00, 1.00, 0.5, 0.5, 0.2, 0.2]
+        gp = [0.9, 0.90, 0.90, 0.90, 0.1, 0.1, 0.7, 0.7]
+        bp = [1.0, 1.00, 0.75, 0.75, 0.3, 0.3, 0.4, 0.4]
 
         r = np.interp(x, xp, rp)
         g = np.interp(x, xp, gp)
@@ -209,12 +209,13 @@ class Buffer():
 
     def plasma2(self, t):
         tau = t * self.hydra.d
-        field = (
+        field = sin(
             np.sin(2 * np.pi * self.yy + .25*tau)
             + np.sin(2 * np.pi * self.xx + .6*tau)
             + np.sin(10 * self.xx * self.yy + .41*tau)
             + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
         )
+
         r,g,b = self.cmap(field)
         self.grid[:, :, 0] = r
         self.grid[:, :, 1] = g
