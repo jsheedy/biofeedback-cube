@@ -6,7 +6,7 @@ import time
 from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
-client = udp_client.SimpleUDPClient('localhost', 37337)
+client = udp_client.SimpleUDPClient('localhost', 37339)
 
 vals = itertools.chain(range(300,600,5), range(600,300,-5))
 
@@ -16,5 +16,5 @@ for i in vals:
 	# client.send(msg.build())
 	client.send_message("/pulse", i)
 	print(i)
-	time.sleep(0.0200)
+	time.sleep(0.100)
 

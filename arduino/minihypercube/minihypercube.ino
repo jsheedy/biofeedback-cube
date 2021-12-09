@@ -1,10 +1,11 @@
 #include <FastLED.h>
 
-#define NUM_LEDS 18
+#define NUM_LEDS 6
 
 // FIXME: how to address the SPI pins on itsy bitsy board
 #define DATA_PIN    A1//16
 #define CLOCK_PIN   A0 //15
+#define KNOB_1_PIN  A4
 
 CRGB leds[NUM_LEDS];
 
@@ -16,6 +17,8 @@ void setup() {
   // FastLED.addLeds<APA102, BGR>(leds, NUM_LEDS);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+  Serial.begin(9600); // open the serial port at 9600 bps:
+
 }
 
 void faceColor(int face, const struct CRGB & color) {
@@ -117,6 +120,17 @@ void dawn() {
   fadeOut(10);
 }
 
+// from https://www.reddit.com/r/FastLED/comments/b2mlvf/gamma_correction/
+void adjustGamma()
+{
+  for (uint16_t i = 0; i < NUM_LEDS; i++)
+  {
+    leds[i].r = dim8_video(leds[i].r);
+    leds[i].g = dim8_video(leds[i].g);
+    leds[i].b = dim8_video(leds[i].b);
+  }
+}
+
 void wave() {
   long t = millis();
   FastLED.setBrightness(10);
@@ -133,9 +147,23 @@ void waves() {
 }
 
 void loop() {
-  heartBeats(1);
+//  heartBeats(1);
   // FastLED.delay(random8());
-  waves();
+//  waves();
+  int val = analogRead(KNOB_1_PIN) / 4;
+  Serial.print(val);
+  Serial.print("\n");
+  leds[0] = CRGB(val, 0, 0);
+  leds[1] = CRGB(0, val, 0);
+  leds[2] = CRGB(0, 0, val);
+
+//  for(int i=0; i<NUM_LEDS; i++ ) {
+//    leds[i] = CRGB(0, val, 0);
+//    leds[i] = CHSV(val, 255, 200);
+//
+//  }
+  adjustGamma();
+  FastLED.show();
 
 //  switch(random(0,7)) {
 //    case 0:
@@ -161,5 +189,5 @@ void loop() {
 //      break;
 //  }
 
-//  FastLED.delay(random(0,200));
+  FastLED.delay(5);
 }
