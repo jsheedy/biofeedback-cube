@@ -21,7 +21,7 @@ from biofeedback_cube import osc
 from biofeedback_cube import buffer
 from biofeedback_cube import display
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SAMPLING_DELAY = 1/20
@@ -35,10 +35,17 @@ class Hydra():
     x: float = 0.5
     y: float = 0.5
     z: float = 0.5
+
+    xyz_x: float = 0.5
+    xyz_y: float = 0.5
+    xyz_z: float = 0.5
+
     a: float = 0.5
     b: float = 0.5
     c: float = 0.5
     d: float = 0.5
+    e: float = 0.5
+
     pulse: float = 0.5
     play: bool = True
     gain: float = 0.0
@@ -64,6 +71,7 @@ def parse_args():
     parser.add_argument("--port", type=int, default=37339, help="The port to listen on")
     parser.add_argument("--simulator", action='store_true', help="run simulator")
     parser.add_argument("--reload", action='store_true', help="live coding")
+    parser.add_argument("--verbose", action='store_true', help="verbose")
     args = parser.parse_args()
     return args
 
@@ -159,14 +167,19 @@ def process_main(rows, cols, reload):
 
 def main():
     args = parse_args()
+    if args.verbose:
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+        logger = logging.getLogger(__name__)
+
     display.init(ROWS, COLS, sdl=args.simulator)
 
     reload = args.reload or os.getenv('RELOAD')
 
-    if reload:
-        logger.info(f'live coding mode enabled')
-    else:
-        logger.info(f'live coding mode disabled')
+    # if reload:
+        # logger.info(f'live coding mode enabled')
+    # else:
+        # logger.info(f'live coding mode disabled')
 
     # process_main(ROWS, COLS, args.reload)
     async_main(ROWS, COLS, args)

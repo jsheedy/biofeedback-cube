@@ -222,7 +222,14 @@ class Buffer():
         self.grid[:, :, 2] = b
 
     def rgb(self, t):
-        self.clear((self.hydra.a, self.hydra.b, self.hydra.c))
+        strobe_freq = self.hydra.d
+        f = .1 + 100 * self.hydra.d
+        r, g, b = (self.hydra.a, self.hydra.b, self.hydra.c)
+        # r, g, b = (self.hydra.xyz_x, self.hydra.xyz_y, self.hydra.xyz_z)
+        if self.hydra.d >= 0.99 or sin(f*t) > .5:
+            self.clear((r, g, b))
+        else:    
+            self.clear((0, 0, 0))
 
     def clear(self, rgb):
         self.grid[:] = rgb
@@ -300,7 +307,7 @@ class Buffer():
             self.image(t, 'heart.png', scale=0.12)
 
         elif self.hydra.mode == 6:
-            self.image(t, 'j+c.png', scale=0.2)
+            self.image(t, 'j+c.png', scale=0.3)
 
         elif self.hydra.mode == 7:
             self.starfield(t)
@@ -321,7 +328,7 @@ class Buffer():
             self.image(t, 'tv-test.png', scale=0.08)
 
         # self.blur(1.2)
-        # self.bright(0.99)
+        self.bright(self.hydra.e)
 
     def get_grid(self):
         slice_width = self.width // self.cols

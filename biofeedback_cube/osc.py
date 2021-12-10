@@ -13,9 +13,15 @@ from pythonosc.osc_server import AsyncIOOSCUDPServer
 logger = logging.getLogger(__name__)
 
 
-def hydraxy_handler(addr, x, y, hydra=None, **kwargs):
+def hydra_xy_handler(addr, x, y, hydra=None, **kwargs):
     hydra.x = x
     hydra.y = y
+
+
+def hydra_accxyz_handler(addr, x, y, z, hydra=None, **kwargs):
+    hydra.xyz_x = x
+    hydra.xyz_y = y
+    hydra.xyz_z = z
 
 
 def hydra_handler(addr, value, hydra=None, **kwargs):
@@ -61,10 +67,12 @@ def server(host, port, hydra):
         '/hydra/b': partial(hydra_handler, hydra=hydra),
         '/hydra/c': partial(hydra_handler, hydra=hydra),
         '/hydra/d': partial(hydra_handler, hydra=hydra),
-        '/hydra/xy': partial(hydraxy_handler, hydra=hydra),
+        '/hydra/e': partial(hydra_handler, hydra=hydra),
+        '/hydra/xy': partial(hydra_xy_handler, hydra=hydra),
+        '/accxyz': partial(hydra_accxyz_handler, hydra=hydra),
         '/mode/*': partial(mode_handler, hydra=hydra),
         '/shutdown': shutdown_handler,
-        # '*': lambda *args: logger.info(str(args))
+        '*': lambda *args: logger.debug(str(args))
     }
 
     dsp = dispatcher.Dispatcher()
