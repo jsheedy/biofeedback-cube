@@ -112,16 +112,6 @@ class Buffer():
         color = colorsys.hsv_to_rgb(h, s, v)
         self.grid[y, :, :] += color
 
-    def pulse_line(self, t, width=2):
-        y = int((self.height-1) * self.hydra.pulse)
-
-        h = sin(.2*t)
-        s = .5 + .5*cos(.1*t)
-        v = .5 + 0.5*cos(t)*sin(t)
-        color = colorsys.hsv_to_rgb(h, s, v)
-
-        self.grid[y, :, :] += color
-
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
         red = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
@@ -217,6 +207,7 @@ class Buffer():
     def rgb(self, t):
         f = .1 + 100 * self.hydra.f
         r, g, b = (self.hydra.a, self.hydra.b, self.hydra.c)
+        logger.debug(self.hydra.f)
         if self.hydra.f >= 0.99 or sin(f*t) > .5:
             self.clear((r, g, b))
         else:
@@ -226,7 +217,8 @@ class Buffer():
         self.grid[:] = rgb
 
     def fade(self, amt=0.8):
-        self.grid[:] *= amt
+        log_amt = np.log10(1 + amt * (10 - 1))
+        self.grid[:] *= log_amt 
 
     def blur(self, sigma=2):
         self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
@@ -234,22 +226,17 @@ class Buffer():
     def bright(self, bright=1.0):
         self.grid[:] *= bright
 
-    def image(self, t, fname, scale=1.0, translate=True):
-        # if self.hydra_fresh(t):
+    def shutdown(self, t):
+        f = 10 
+        row = sin(f*t) > 0.5 and 1 or 0
+        self.grid[row::4, :, 0] = 0.5
+        self.grid[abs(1 - row)::4, :, 1] = 0.2 
+        self.grid[row::4, :, 2] = 0.0 
+
+    def image(self, t, fname, scale=1.0):
         x0 = int(-40 + 80 * (1-self.hydra.x))
         y0 = int(-40 + 80 * (1-self.hydra.y))
-        # else:
-            # x0 = -0
-            # y0 = 5
-        """
-        else:
-            if translate:
-                y0 = int(30*sin(t))
-                x0 = int(30*sin(t))
-            else:
-                y0 = 0
-                x0 = 0
-        """
+
         rgba = open_image(fname, scale=scale)
         im = rgba[:, :, :3]
         im = im[::-1, ::-1, :]
@@ -262,7 +249,6 @@ class Buffer():
         xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
         self.grid[yy_i, xx_i, :] = im
-        # self.grid[yy_i, xx_i, :] = self.layer_op(self.grid[yy_i, xx_i, :], im)
 
     def select_op(self):
         if self.hydra.x < 0.3:
@@ -275,11 +261,15 @@ class Buffer():
             self.locals['layer_op'] = operator.iadd
 
     def update(self, t):
-        # self.select_op()
+
+        if self.hydra.shutdown:
+            self.shutdown(t)
+            return
+
         self.fade(self.hydra.d)
 
         if self.hydra.mode == 0:
-            self.image(t, 'mario.png', scale=0.28, translate=False)
+            self.image(t, 'mario.png', scale=0.28)
 
         elif self.hydra.mode == 1:
             self.hydra_line(t)
@@ -291,7 +281,7 @@ class Buffer():
             self.test_grid(t, width=2)
 
         elif self.hydra.mode == 4:
-            self.pulse_line(t, width=2)
+            self.image(t, 'tv-test.png', scale=0.08)
 
         elif self.hydra.mode == 5:
             self.image(t, 'heart.png', scale=0.12)
@@ -315,10 +305,7 @@ class Buffer():
             self.rgb(t)
 
         elif self.hydra.mode == 12:
-            self.image(t, 'tv-test.png', scale=0.08)
-
-        # self.blur(1.2)
-        self.bright(self.hydra.e)
+            self.shutdown(t)
 
     def get_grid(self):
         slice_width = self.width // self.cols

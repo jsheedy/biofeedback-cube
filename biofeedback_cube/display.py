@@ -120,8 +120,9 @@ class DotstarDisplay():
         # could use .transpose(1, 0, 2) instead
         return np.swapaxes(g, 0, 1).ravel()
 
-    def draw(self, grid, gamma=2.0):
+    def draw(self, grid, brightness=1.0, gamma=2.0):
         arr = self.serialize_grid(grid)
+        arr *= brightness
         gamma_corrected = np.clip(arr, 0, 1) ** gamma
         # disable gamma correction
         # gamma_corrected = arr
@@ -141,5 +142,5 @@ def init(rows, cols, sdl=True):
         _display = DotstarDisplay(rows, cols)
 
 
-def draw(grid):
-    _display.draw(grid)
+def draw(grid, brightness=1.0):
+    _display.draw(grid, brightness=brightness)

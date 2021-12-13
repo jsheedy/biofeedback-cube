@@ -7,8 +7,6 @@ import os
 from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 
-# from biofeedback_cube.audio import set_gain
-
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +50,9 @@ def mode_handler(addr, value, hydra=None, **kwargs):
         hydra.mode = mode 
 
 
-def shutdown_handler(addr, value, **kwargs):
+def shutdown_handler(addr, value, hydra=None, **kwargs):
     logger.critical("shutting down")
+    hydra.shutdown = True
     os.system('sudo shutdown -r now')
 
 
@@ -68,10 +67,18 @@ def server(host, port, hydra):
         '/hydra/c': partial(hydra_handler, hydra=hydra),
         '/hydra/d': partial(hydra_handler, hydra=hydra),
         '/hydra/e': partial(hydra_handler, hydra=hydra),
+        '/hydra/f': partial(hydra_handler, hydra=hydra),
+        '/hydra/g': partial(hydra_handler, hydra=hydra),
+        '/hydra/h': partial(hydra_handler, hydra=hydra),
+        '/hydra/i': partial(hydra_handler, hydra=hydra),
+        '/hydra/j': partial(hydra_handler, hydra=hydra),
+        '/hydra/k': partial(hydra_handler, hydra=hydra),
+        '/hydra/l': partial(hydra_handler, hydra=hydra),
+        '/hydra/m': partial(hydra_handler, hydra=hydra),
         '/hydra/xy': partial(hydra_xy_handler, hydra=hydra),
         '/accxyz': partial(hydra_accxyz_handler, hydra=hydra),
         '/mode/*': partial(mode_handler, hydra=hydra),
-        '/shutdown': shutdown_handler,
+        '/shutdown': partial(shutdown_handler, hydra=hydra),
         '*': lambda *args: logger.debug(str(args))
     }
 

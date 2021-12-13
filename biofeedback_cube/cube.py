@@ -51,6 +51,7 @@ class Hydra():
     play: bool = True
     gain: float = 0.0
     mode: int = 5
+    shutdown: bool = False
     last_update: float = 0
 
     def __setattr__(self, name, value):
@@ -112,7 +113,8 @@ def async_render(rows, cols, reload=False):
     while True:
         grid = render(rows, cols, reload=reload)
         yield from asyncio.sleep(0.010)
-        display.draw(grid)
+        brightness = hydra.e
+        display.draw(grid, brightness=brightness)
         yield from asyncio.sleep(0.010)
 
 
