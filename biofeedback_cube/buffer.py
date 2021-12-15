@@ -167,12 +167,13 @@ class Buffer():
         self.renderer.draw_line(pts, rgb)
 
     def plasma(self, t):
-        tau = t * self.hydra.f
+        tau = t * self.hydra.f * 10
+        f = .01 + self.hydra.g * 10
         field = (
-            np.sin(2 * np.pi * self.yy + .25*tau)
-            + np.sin(2 * np.pi * self.xx + .6*tau)
-            + np.sin(10 * self.xx * self.yy + .41*tau)
-            + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
+            np.sin(2 * np.pi * f * self.yy + .25*tau)
+            + np.sin(2 * np.pi * f * self.xx + .6*tau)
+            + np.sin(10 * self.xx * f * self.yy + .41*tau)
+            + np.sin(10 * self.xx**2 * f * self.yy**2 + .34*tau)
         )
         self.grid[:, :, 0] = self.hydra.a * sin(field)
         self.grid[:, :, 1] = self.hydra.b * sin(1.2*field + tau)

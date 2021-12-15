@@ -46,11 +46,12 @@ class Hydra():
     d: float = 0.5
     e: float = 0.5
     f: float = 0.5
+    g: float = 0.5
 
     pulse: float = 0.5
     play: bool = True
     gain: float = 0.0
-    mode: int = 5
+    mode: int = 9
     shutdown: bool = False
     last_update: float = 0
 
