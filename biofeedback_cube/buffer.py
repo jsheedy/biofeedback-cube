@@ -83,7 +83,7 @@ class Buffer():
         self.fade(hydra.d)
         MODE_MAP[Modes(hydra.mode)](self.grid, t)
         self.rotate(hydra.h)
-        self.blur(hydra.i * 200)
+        # self.blur(hydra.i * 200)
 
     def get_grid(self):
         slice_width = self.width // self.cols
