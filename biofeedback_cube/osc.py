@@ -23,7 +23,7 @@ def update_client(client, name, value):
 def update_client_xy(client, x, y):
     ip, port = client
     client = udp_client.SimpleUDPClient(ip, port)
-    client.send_message(f'/hydra/xy', x, y)
+    client.send_message(f'/hydra/xy', (x, y))
 
 
 def hydra_xy_handler(addr, args, x, y, **kwargs):
