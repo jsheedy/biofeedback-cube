@@ -111,7 +111,8 @@ def async_main(rows, cols, args):
     coros = (
         async_render(rows, cols, reload=args.reload),
         osc.server(args.host, args.port, hydra),
-        persist_hydra(),
+        # slow
+        # persist_hydra(),
     )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
