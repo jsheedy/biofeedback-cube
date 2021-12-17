@@ -44,7 +44,7 @@ class Hydra():
     p: float = 0.5
     q: float = 0.5
 
-    mode: Modes = Modes.MARIO.value
+    mode: Modes = Modes.PLASMA
     shutdown: bool = False
     last_update: float = 0
 
@@ -81,5 +81,6 @@ def save_hydra():
 if Path(HYDRA_STATE_FILE).is_file():
     with open(HYDRA_STATE_FILE, 'rb') as f:
         hydra = pickle.load(f)
+        logger.warning(f'loading hydra state {hydra}')
 else:
     hydra = Hydra()
