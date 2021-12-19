@@ -33,10 +33,13 @@ palettes = {
     ]
 }
 
+
 def palette_map(x):
     """ return a palette for range d 0-1 the best range"""
-    k = list(palettes.keys())
-    return palettes[k[int(x * len(palettes))]]
+    keys = list(palettes.keys())
+    index = int(x * (len(keys)-1))
+    return palettes[keys[index]]
+
 
 def palette(grid, t):
     palette = palette_map(hydra.f)
@@ -46,3 +49,4 @@ def palette(grid, t):
     for i, color in enumerate(palette):
         r, g, b = color[0] / 255, color[1] / 255, color[2] / 255
         grid[i*size:(i+1)*size, :, :] = r, g, b
+
