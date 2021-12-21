@@ -30,7 +30,7 @@ def open_image(path):
 
 def image(grid, t):
 
-    idx = np.clip(0, len(images), int(hydra.f * len(images)))
+    idx = int(hydra.f * (len(images)-1))
     rgba = images[idx]
 
     im = rgba[:, :, :3]
@@ -41,7 +41,7 @@ def image(grid, t):
     x = 2 * hydra.x - 1
     y = 2 * hydra.y - 1
 
-    if hydra.fresh(t) or hydra.g > .05:
+    if hydra.i >= .5:
         scale = hydra.g * 2
     else:
         scale = .95 + .2 * sin(3 * t)

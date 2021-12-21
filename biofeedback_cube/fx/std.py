@@ -9,6 +9,13 @@ from biofeedback_cube.utils import sin, cos
 
 yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
 
+operators = (
+    np.add,
+    np.multiply,
+    np.divide,
+    np.power,
+    np.subtract,
+)
 
 def early_fire(grid, t):
     f = 10
@@ -20,7 +27,6 @@ def early_fire(grid, t):
 
 def circle(grid, t, color=(.7, .4, .2), weight=1.0):
     radius = hydra.f * 0.2
-
     if hydra.fresh(t):
         y = 1-hydra.y
         x = 1-hydra.x
@@ -30,10 +36,13 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
 
     color = (hydra.a, hydra.b, hydra.c)
     mask = ((xx - x)**2 + (yy - y)**2) < radius
-    grid[mask, :] += weight * np.array(color)
+
+    # op = operators[int(hydra.i * (len(operators)-1))]
+    # op(grid[mask, :], weight * np.array(color))
+    grid[mask, :] = weight * np.array(color)
 
 
-def tent(grid, t):
+def tent(grid, t, operator=np.add):
     """ similar to a circle but like a circus tent """
     r = 5 * hydra.f
 

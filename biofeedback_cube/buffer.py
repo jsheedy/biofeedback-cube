@@ -63,10 +63,12 @@ class Buffer():
         # self.grid[:] = filters.sobel(self.grid)
 
     def rotate(self, angle: float):
+        if angle == 0.0:
+            return
         self.grid[:] = rotate(
             # hack to stretch 68x8 square for rotation
             np.repeat(self.grid, 8, axis=1),
-            -180 + angle * 360,
+            0 + angle * 360,
             reshape=False,
             prefilter=True,
             order=3,
