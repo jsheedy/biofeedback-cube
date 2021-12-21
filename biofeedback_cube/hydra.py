@@ -64,9 +64,11 @@ def save_hydra():
     hydra.dirty = False
     hydra.shutdown = False
     logger.info(f'dumping hydra state to {HYDRA_STATE_FILE}')
-    with open(HYDRA_STATE_FILE, 'wb') as f:
-        pickle.dump(hydra, f, protocol=pickle.HIGHEST_PROTOCOL)
-
+    try:
+        with open(HYDRA_STATE_FILE, 'wb') as f:
+            pickle.dump(hydra, f, protocol=pickle.HIGHEST_PROTOCOL)
+    except Exception:
+        logger.exception(f'unable to save {HYDRA_STATE_FILE}')
 
 try:
     with open(HYDRA_STATE_FILE, 'rb') as f:
