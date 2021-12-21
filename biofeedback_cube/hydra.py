@@ -55,7 +55,7 @@ class Hydra():
     def fresh(self, t):
         """ return boolean whether hydra has been updated recently """
         dt = t - self.last_update
-        return dt < .3
+        return dt < .2
 
 
 def save_hydra():

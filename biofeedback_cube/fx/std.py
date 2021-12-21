@@ -2,6 +2,7 @@ import colorsys
 import random
 
 import numpy as np
+from scipy.signal import sawtooth
 
 from biofeedback_cube.config import HEIGHT, WIDTH
 from biofeedback_cube.hydra import hydra
@@ -45,13 +46,16 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
 def tent(grid, t, operator=np.add):
     """ similar to a circle but like a circus tent """
     r = 5 * hydra.f
+    f = 10.0 * hydra.g
 
     if hydra.fresh(t):
         y = 1 - hydra.y
         x = 1 - hydra.x
     else:
-        y = 0.25 + 0.5*sin(0.5*t)
-        x = 0.25 + 0.5*cos(0.501*t)
+        y = 0.5
+        x = (sawtooth(f*t, width=0.5) + 1) / 2
+        # y = 0.25 + 0.5*sin(0.5*t)
+        # x = 0.25 + 0.5*cos(0.501*t)
 
     tent = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
     r, g, b = hydra.a, hydra.b, hydra.c
