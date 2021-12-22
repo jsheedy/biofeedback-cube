@@ -13,7 +13,6 @@ from scipy.ndimage import filters
 
 from biofeedback_cube.utils import open_image, sin, cos
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +28,6 @@ class Buffer():
 
     hydra is a class which contains all user interface controls, e.g. position
     of a slider or joystick
-
     """
 
     def __init__(self, rows, cols, size=None, hydra=None):
@@ -103,7 +101,7 @@ class Buffer():
         for i in range(int(30*self.hydra.x)):
             y = random.randint(0, self.height-1)
             x = random.randint(0, self.width-1)
-            self.grid[y, x, :] = random.random(), random.random(), random.random() 
+            self.grid[y, x, :] = random.random(), random.random(), random.random()
             # self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
@@ -128,7 +126,6 @@ class Buffer():
         color = colorsys.hsv_to_rgb(h, s, v)
 
         self.grid[y, :, :] += color
-
 
     def __sunrise(self, t):
         blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
@@ -159,9 +156,6 @@ class Buffer():
         tent = np.clip(1-np.sqrt((r*(self.xx-x))**2 + (r*(self.yy-y))**2), 0, 1)
         r, g, b = color
 
-        # self.grid[:, :, 0] = self.layer_op(self.grid[:, :, 0], weight * r * tent)
-        # self.grid[:, :, 1] = self.layer_op(self.grid[:, :, 1], weight * g * tent)
-        # self.grid[:, :, 2] = self.layer_op(self.grid[:, :, 2], weight * b * tent)
         self.grid[:, :, 0] = weight * r * tent
         self.grid[:, :, 1] = weight * g * tent
         self.grid[:, :, 2] = weight * b * tent
@@ -186,6 +180,18 @@ class Buffer():
             0, 0, int(self.width*y), int(self.height*x)
         )
         self.renderer.draw_line(pts, rgb)
+
+    def plasma(self, t):
+        tau = t * self.hydra.d
+        field = (
+            np.sin(2 * np.pi * self.yy + .25*tau)
+            + np.sin(2 * np.pi * self.xx + .6*tau)
+            + np.sin(10 * self.xx * self.yy + .41*tau)
+            + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
+        )
+        self.grid[:, :, 0] = self.hydra.a * field
+        self.grid[:, :, 1] = self.hydra.b * field
+        self.grid[:, :, 2] = self.hydra.c * field
 
     def clear(self, rgb):
         self.grid[:] = rgb
@@ -234,8 +240,7 @@ class Buffer():
     def update(self, t):
         # self.select_op()
         self.fade(self.hydra.d)
-        # self.clear((0.08*sin(t), 0.08*cos(t), .01))
-        # self.lines(t)
+
         if self.hydra.mode == 0:
             self.tent(t, weight=0.4)
 
@@ -263,6 +268,9 @@ class Buffer():
         elif self.hydra.mode == 8:
             self.punyty(t)
 
+        elif self.hydra.mode == 9:
+            self.plasma(t)
+
         # self.blur(1.2)
         # self.bright(0.99)
 
@@ -270,8 +278,6 @@ class Buffer():
         slice_width = self.width // self.cols
         s = slice(0, slice_width * self.cols, slice_width)
         return self.buffer[:, s, :]
-        # return self.buffer[self.iy, self.ix, :]
-        # return np.clip(self.buffer[self.iy, self.ix, :], 0, 1)
 
     def __keyframes(cols, rows):
         times = np.linspace(0, 1, 5)

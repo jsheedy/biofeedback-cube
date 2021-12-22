@@ -1,4 +1,15 @@
 # biofeedback-cube
+This project began as an immersive cube of side 4 feet in which one would sit while hooked up to a heartrate monitor. 5 walls of the cubes were to be LED panels while the base was constructed of wood and contained a 12" JBL subwoofer and fullrange speakers. The heartbeat signal would modulate all light and sound reaching the user providing an immersive biofeedback loop.
+
+[OSC](https://www.wikiwand.com/en/Open_Sound_Control) is used as a communications protocol between subsystems such as the heartrate monitor, [TouchOSC](https://hexler.net/touchosc), or Ableton Live.
+
+I constructed 3 panels and the initial project has pivoted. Now the main usage is driving one of them which is mounted on a wall in a wood frame, controllable by TouchOSC and Ableton.
+## development
+While the target platform is a Rasbperry Pi to drive the LEDs, a simulator is included to enable developing on a mac.
+```
+pip install -e .
+cube --simulator
+```
 
 ## installation
 
@@ -19,5 +30,9 @@ conda install conda-build
 conda develop .
 ```
 
-This should result in a `cube` command.  Install the systemd service with appropriate paths following `systemd/` and it should start on boot up. Set any environment variables in /etc/cube_environment. Logs at `sudo journalctl -u cube `
+This should result in a `cube` command.  Install the `systemd/cube.service` service in `/etc/systemd/system`, run `systemctl enable cube` and it should start on boot up.
+
+Set any environment variables in /etc/cube_environment.
+
+Logs at `sudo journalctl -u cube `
 

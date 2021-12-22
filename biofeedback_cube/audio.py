@@ -1,7 +1,13 @@
-import alsaaudio
-import sounddevice as sd
-import soundfile as sf
+import logging
 
+logger = logging.getLogger(__name__)
+
+try:
+    import alsaaudio
+    import sounddevice as sd
+    import soundfile as sf
+except ImportError as e:
+    logger.warning(f'unable to import audio: {e}')
 
 def set_gain(val):
     m = alsaaudio.Mixer('PCM')
