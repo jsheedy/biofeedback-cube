@@ -208,14 +208,18 @@ class Buffer():
     def bright(self, bright=1.0):
         self.grid[:] *= bright
 
-    def image(self, t, fname, scale=1.0):
+    def image(self, t, fname, scale=1.0, translate=True):
 
         if self.hydra_fresh(t):
             x0 = int(self.width * self.hydra.x)
             y0 = int(self.height * self.hydra.y)
         else:
-            y0 = int(30*sin(t))
-            x0 = int(30*sin(t))
+            if translate:
+                y0 = int(30*sin(t))
+                x0 = int(30*sin(t))
+            else:
+                y0 = 0
+                x0 = 0
 
         rgba = open_image(fname, scale=scale)
         im = rgba[:, :, :3]
@@ -272,6 +276,9 @@ class Buffer():
 
         elif self.hydra.mode == 9:
             self.plasma(t)
+
+        elif self.hydra.mode == 10:
+            self.image(t, 'mario.png', scale=0.28, translate=False)
 
         # self.blur(1.2)
         # self.bright(0.99)
