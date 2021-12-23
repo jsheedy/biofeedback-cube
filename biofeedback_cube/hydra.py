@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Dict
 
 import logging
 import pickle
@@ -40,7 +41,7 @@ class Hydra():
     p: float = 0.5
     q: float = 0.5
 
-    modes: dict[Modes] = field(default_factory=lambda: {Modes.PLASMA: None})
+    modes: Dict[Modes, bool] = field(default_factory=lambda: {Modes.PLASMA: None})
     shutdown: bool = False
     last_update: float = 0
 
