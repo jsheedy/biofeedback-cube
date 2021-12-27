@@ -43,9 +43,6 @@ class Buffer():
     The last channel is (1,R,G,B), so make
     transformation to Dotstar LED format 0xffrrggbb simpler at the expense
     of minor complexity here
-
-    hydra is a class which contains all user interface controls, e.g. position
-    of a slider or joystick
     """
 
     def __init__(self, height, width):

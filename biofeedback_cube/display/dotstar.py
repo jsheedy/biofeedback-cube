@@ -14,21 +14,14 @@ class DotstarDisplay():
         self.strip.begin()
 
     def serialize_grid(self, grid):
-        # views were causing mirror images on flipped columns
-        # when assigning to self
-        # FIXME: remove the copies
+        # flip display on x/y, RGB->BGR
+        grid[:, :, 1:] = grid[::-1, ::-1, 3:0:-1]
 
-        # RGB->BGR
-        g = np.copy(grid)
-        g[:, :, 1:] = grid[:, :, 3:0:-1]
-
-        # invert every other column for Biofeedback Cube Mark 1
-        # which is laid out in Z-order
-        g[:, 1::2, :] = np.copy(g[::-1, 1::2, :])
+        # invert every other column since display is laid out in Z-order
+        grid[:, 1::2, :] = grid[::-1, 1::2, :]
 
         # transpose so ravel outputs colors first, then rows, then cols
-        # could use .transpose(1, 0, 2) instead
-        return np.swapaxes(g, 0, 1).ravel()
+        return np.swapaxes(grid, 0, 1).ravel()
 
     def draw(self, grid, brightness=1.0, gamma=2.0):
         arr = self.serialize_grid(grid)
