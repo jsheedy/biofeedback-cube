@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 from punyty.vector import Vector3
-from punyty.objects import Cube
+from punyty.objects import Cube, Tetrahedron, Octahedron, Dodecahedron
 from punyty.renderers import ArrayRenderer
 from punyty.scene import Scene
 
@@ -11,8 +11,13 @@ from ..utils import sin, cos
 
 
 scene = Scene()
-cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3))
-scene.add_object(cube)
+
+objects = (
+    Tetrahedron(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3)),
+    Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3)),
+    Octahedron(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3)),
+    # Dodecahedron(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3))
+)
 
 cache = {}
 
@@ -47,13 +52,19 @@ def punyty(grid, t):
     target_array = get_target_array(grid)
     renderer = get_renderer(target_array)
 
+    idx = int(hydra.g * (len(objects) - 1))
+    obj = objects[idx]
+    obj.position = Vector3(6 * (hydra.x - .35), 6 * (0.5-hydra.y), 0.2 + 2 * hydra.a)
     if hydra.f < 0.2:
-        cube.rotate(Vector3(-3+hydra.a*6, -3+hydra.b*6, -3+hydra.c*6))
-        cube.color = Vector3(hydra.a, hydra.b, hydra.c)
+        obj.rotate(Vector3(-3+hydra.a*6, -3+hydra.b*6, -3+hydra.c*6))
+        obj.color = Vector3(hydra.a, hydra.b, hydra.c)
     else:
-        cube.rotate(Vector3(math.sin(.9*t), math.sin(0.63*t), math.cos(0.85*t)))
+        obj.rotate(Vector3(math.sin(.9*t), math.sin(0.63*t), math.cos(0.85*t)))
         color = Vector3(sin(.1*t + 1), .1 + sin(0.08*t), cos(0.1515*t))
-        cube.color = color
+        obj.color = color
+
+    scene.objects.clear()
+    scene.add_object(obj)
 
     renderer.render(scene)
 
