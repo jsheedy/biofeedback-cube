@@ -300,7 +300,7 @@ class Buffer():
             self.image(t, 'heart.png', scale=0.12)
 
         elif self.hydra.mode == 6:
-            self.image(t, 'E.png', scale=0.2)
+            self.image(t, 'j+c.png', scale=0.2)
 
         elif self.hydra.mode == 7:
             self.starfield(t)
