@@ -254,7 +254,7 @@ class Buffer():
         """
         rgba = open_image(fname, scale=scale)
         im = rgba[:, :, :3]
-        im = im[::-1, :, :]
+        im = im[::-1, ::-1, :]
 
         h, w = im.shape[:2]
 
@@ -313,11 +313,14 @@ class Buffer():
         elif self.hydra.mode == 10:
             self.plasma2(t)
 
-        # elif self.hydra.mode == 10:
-            # self.image(t, 'mario.png', scale=0.28, translate=False)
-
         elif self.hydra.mode == 11:
             self.rgb(t)
+
+        elif self.hydra.mode == 12:
+            self.image(t, 'tv-test.png', scale=0.2)
+
+        elif self.hydra.mode == 13:
+            self.image(t, 'mario.png', scale=0.28, translate=False)
 
         # self.blur(1.2)
         # self.bright(0.99)
