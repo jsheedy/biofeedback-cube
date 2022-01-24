@@ -83,28 +83,21 @@ class Buffer():
 
     def punyty(self, t):
 
-        if self.hydra.d < 0.2:
+        if self.hydra.f < 0.2:
             self.cube.rotate(Vector3(-3+self.hydra.a*6, -3+self.hydra.b*6, -3+self.hydra.c*6))
             self.cube.color = Vector3(self.hydra.a, self.hydra.b, self.hydra.c)
         else:
             self.cube.rotate(Vector3(math.sin(.2*t), math.sin(0.23*t), math.cos(0.25*t)))
-            color = Vector3(math.sin(.1*t), math.sin(0.03*t), math.cos(0.0515*t))
+            color = Vector3(math.sin(.1*t), math.sin(0.08*t), math.cos(0.1515*t))
             self.cube.color = color
 
-        # self.cube.color = Vector3(sin(.1*t), .1 + .9*cos(.05*t), sin(0.1*t)*cos(0.05*t))
-        # self.cube.position = Vector3(-.350, 0.5*math.sin(t/2), 1.3 + 0.3 * math.sin(t/3))
-        # self.cube.position = Vector3(sin(t), cos(t), 25)
         self.renderer.render(self.scene)
 
     def starfield(self, t):
-        # marker = int(t*5)
-        # if marker > self.locals['s']:
-            # self.locals['s'] = marker
         for i in range(int(30*self.hydra.x)):
             y = random.randint(0, self.height-1)
             x = random.randint(0, self.width-1)
             self.grid[y, x, :] = random.random(), random.random(), random.random()
-            # self.grid[y, x, :] = colorsys.hsv_to_rgb(random.random(), 1, 1)
 
     def test_grid(self, t, width=1, weight=1.0):
         if self.hydra_fresh(t):
@@ -184,7 +177,7 @@ class Buffer():
         self.renderer.draw_line(pts, rgb)
 
     def plasma(self, t):
-        tau = t * self.hydra.d
+        tau = t * self.hydra.f
         field = (
             np.sin(2 * np.pi * self.yy + .25*tau)
             + np.sin(2 * np.pi * self.xx + .6*tau)
@@ -208,7 +201,7 @@ class Buffer():
         return r,g,b
 
     def plasma2(self, t):
-        tau = t * self.hydra.d
+        tau = t * self.hydra.f
         field = sin(
             np.sin(2 * np.pi * self.yy + .25*tau)
             + np.sin(2 * np.pi * self.xx + .6*tau)
@@ -222,13 +215,11 @@ class Buffer():
         self.grid[:, :, 2] = b
 
     def rgb(self, t):
-        strobe_freq = self.hydra.d
-        f = .1 + 100 * self.hydra.d
+        f = .1 + 100 * self.hydra.f
         r, g, b = (self.hydra.a, self.hydra.b, self.hydra.c)
-        # r, g, b = (self.hydra.xyz_x, self.hydra.xyz_y, self.hydra.xyz_z)
-        if self.hydra.d >= 0.99 or sin(f*t) > .5:
+        if self.hydra.f >= 0.99 or sin(f*t) > .5:
             self.clear((r, g, b))
-        else:    
+        else:
             self.clear((0, 0, 0))
 
     def clear(self, rgb):
@@ -288,7 +279,6 @@ class Buffer():
         self.fade(self.hydra.d)
 
         if self.hydra.mode == 0:
-            # self.tent(t, weight=0.4)
             self.image(t, 'mario.png', scale=0.28, translate=False)
 
         elif self.hydra.mode == 1:
