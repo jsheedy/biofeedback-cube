@@ -45,6 +45,7 @@ class Hydra():
     c: float = 0.5
     d: float = 0.5
     e: float = 0.5
+    f: float = 0.5
 
     pulse: float = 0.5
     play: bool = True
