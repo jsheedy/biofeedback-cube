@@ -19,7 +19,7 @@ except ImportError:
 
 class SDLDisplay():
 
-    def __init__(self, rows, cols, width=600, height=600):
+    def __init__(self, rows, cols, width=900, height=900):
         self.cols = cols
         self.rows = rows
         self.width = width
@@ -45,12 +45,17 @@ class SDLDisplay():
             )
         )
 
+        self.keys_down = set()
+
+
     def handle_events(self):
         events = sdl2.ext.get_events()
         for event in events:
+            logger.debug(event.key.keysym.sym)
+            # if event.type == sdl2.SDL_PRESSED:
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
-                    hydra.mode = (hydra.mode + 1 ) % 15
+                    hydra.mode = (hydra.mode + 1 ) % 13
                     # self.state.paused = not self.state.paused
                 elif event.key.keysym.sym == 61:  # +
                     if self.state.speed < 0.001:
@@ -62,11 +67,25 @@ class SDLDisplay():
                 elif event.key.keysym.sym == 113:  # q
                     self.state.running = False
 
+                self.keys_down.clear()
+                self.keys_down.add(event.key.keysym.sym)
+                logging.debug(self.keys_down)
+
+            # elif event.type == sdl2.SDL_RELEASED:
+            elif event.type == sdl2.SDL_KEYUP:
+                self.keys_down.clear()
+
             elif event.type == sdl2.SDL_MOUSEMOTION:
                 x, y = ctypes.c_int(0), ctypes.c_int(0) # Create two ctypes values
                 _ = sdl2.mouse.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
-                hydra.y = y.value / self.height
-                hydra.x = x.value / self.width
+                y_normalized = y.value / self.height
+                x_normalized = x.value / self.width
+
+                for key in self.keys_down:
+                    setattr(hydra, chr(key), y_normalized)
+
+                hydra.y = y_normalized
+                hydra.x = x_normalized
 
             elif event.type == sdl2.SDL_QUIT:
                 self.state.running = False
