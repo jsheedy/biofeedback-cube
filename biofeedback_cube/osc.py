@@ -6,51 +6,55 @@ import os
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
-
+from pythonosc import udp_client
 
 logger = logging.getLogger(__name__)
 
 
-def hydra_xy_handler(addr, x, y, hydra=None, **kwargs):
+def update_client(client, name, value):
+    ip, port = client
+    client = udp_client.SimpleUDPClient(ip, port)
+    client.send_message(f'/hydra/{name}', value)
+
+
+def hydra_xy_handler(addr, args, x, y, **kwargs):
+    hydra = args[0]
     hydra.x = x
     hydra.y = y
 
 
-def hydra_accxyz_handler(addr, x, y, z, hydra=None, **kwargs):
+def hydra_accxyz_handler(addr, args, x, y, z, **kwargs):
+    hydra = args[0]
     hydra.xyz_x = x
     hydra.xyz_y = y
     hydra.xyz_z = z
 
 
-def hydra_handler(addr, value, hydra=None, **kwargs):
+def hydra_handler(client, addr, args, value, **kwargs):
+    hydra = args[0]
     dim = addr.split('/')[-1]
     setattr(hydra, dim, value)
+    hydra.clients.add(client)
 
 
-def play_handler(addr, value, hydra=None, **kwargs):
-    hydra.play = bool(value)
+def add_client(client, addr, args, **kwargs):
+    hydra = args[0]
+    hydra.clients.add(client)
 
 
-def gain_handler(addr, value, hydra=None, **kwargs):
-    set_gain(value)
-    hydra.gain = value
-
-
-def pulse_handler(addr, value, hydra=None, **kwargs):
-    hydra.pulse = value
-
-
-def mode_handler(addr, value, hydra=None, **kwargs):
+def mode_handler(addr, args, value, **kwargs):
+    hydra = args[0]
     if int(value) == 1:
         mode_l = addr.split('/')
         mode_row = int(mode_l[-2]) - 1
         mode_col = int(mode_l[-1]) - 1
         mode = mode_col * 3 + mode_row
         logger.info(f'setting hydra mode {mode}')
-        hydra.mode = mode 
+        hydra.mode = mode
 
 
-def shutdown_handler(addr, value, hydra=None, **kwargs):
+def shutdown_handler(addr, args, value, **kwargs):
+    hydra = args[0]
     logger.critical("shutting down")
     hydra.shutdown = True
     os.system('sudo shutdown -r now')
@@ -60,25 +64,24 @@ def shutdown_handler(addr, value, hydra=None, **kwargs):
 def server(host, port, hydra):
 
     addr_map = {
-        '/play': partial(play_handler, hydra=hydra),
-        '/pulse': partial(pulse_handler, hydra=hydra),
-        '/hydra/a': partial(hydra_handler, hydra=hydra),
-        '/hydra/b': partial(hydra_handler, hydra=hydra),
-        '/hydra/c': partial(hydra_handler, hydra=hydra),
-        '/hydra/d': partial(hydra_handler, hydra=hydra),
-        '/hydra/e': partial(hydra_handler, hydra=hydra),
-        '/hydra/f': partial(hydra_handler, hydra=hydra),
-        '/hydra/g': partial(hydra_handler, hydra=hydra),
-        '/hydra/h': partial(hydra_handler, hydra=hydra),
-        '/hydra/i': partial(hydra_handler, hydra=hydra),
-        '/hydra/j': partial(hydra_handler, hydra=hydra),
-        '/hydra/k': partial(hydra_handler, hydra=hydra),
-        '/hydra/l': partial(hydra_handler, hydra=hydra),
-        '/hydra/m': partial(hydra_handler, hydra=hydra),
-        '/hydra/xy': partial(hydra_xy_handler, hydra=hydra),
-        '/accxyz': partial(hydra_accxyz_handler, hydra=hydra),
-        '/mode/*': partial(mode_handler, hydra=hydra),
-        '/shutdown': partial(shutdown_handler, hydra=hydra),
+        '/hydra/a': hydra_handler,
+        '/hydra/b': hydra_handler,
+        '/hydra/c': hydra_handler,
+        '/hydra/d': hydra_handler,
+        '/hydra/e': hydra_handler,
+        '/hydra/f': hydra_handler,
+        '/hydra/g': hydra_handler,
+        '/hydra/h': hydra_handler,
+        '/hydra/i': hydra_handler,
+        '/hydra/j': hydra_handler,
+        '/hydra/k': hydra_handler,
+        '/hydra/l': hydra_handler,
+        '/hydra/m': hydra_handler,
+        '/hydra/xy': hydra_xy_handler,
+        '/accxyz': hydra_accxyz_handler,
+        '/mode/*': mode_handler,
+        '/shutdown': shutdown_handler,
+        '/ping': add_client,
         '*': lambda *args: logger.debug(str(args))
     }
 
@@ -87,7 +90,7 @@ def server(host, port, hydra):
     logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
         logger.info(f'{pattern}')
-        dsp.map(pattern, handler)
+        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (add_client, hydra_handler)))
 
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
