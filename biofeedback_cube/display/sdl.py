@@ -5,6 +5,8 @@ from types import SimpleNamespace
 import numpy as np
 
 from biofeedback_cube import exceptions
+from biofeedback_cube.hydra import hydra
+
 
 logger = logging.getLogger(__name__)
 
@@ -13,14 +15,6 @@ try:
     import sdl2.ext
 except ImportError:
     logger.info('unable to import sdl2')
-
-try:
-    from dotstar import Adafruit_DotStar
-except ImportError:
-    logger.info('unable to import Adafruit_DotStar')
-
-
-_display = None
 
 
 class SDLDisplay():
@@ -56,7 +50,8 @@ class SDLDisplay():
         for event in events:
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
-                    self.state.paused = not self.state.paused
+                    hydra.mode = (hydra.mode + 1 ) % 15
+                    # self.state.paused = not self.state.paused
                 elif event.key.keysym.sym == 61:  # +
                     if self.state.speed < 0.001:
                         self.state.speed += 0.0000025
@@ -70,19 +65,19 @@ class SDLDisplay():
             elif event.type == sdl2.SDL_MOUSEMOTION:
                 x, y = ctypes.c_int(0), ctypes.c_int(0) # Create two ctypes values
                 _ = sdl2.mouse.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
-                self.state.joystick.y = y.value / self.height
-                self.state.joystick.x = x.value / self.width
+                hydra.y = y.value / self.height
+                hydra.x = x.value / self.width
 
             elif event.type == sdl2.SDL_QUIT:
                 self.state.running = False
 
-    def draw(self, grid, gamma=1.0):
+    def draw(self, grid, brightness=1.0, gamma=1.0):
         self.handle_events()
         if not self.state.running:
             raise exceptions.UserQuit('user quit')
 
-        rgb = (grid * 255).astype(np.uint32)
-        r, g, b = rgb[:, :, 1], rgb[:, :, 2], rgb[:, :, 3]
+        rgb = (grid * brightness * 255).astype(np.uint32)
+        r, g, b = rgb[::-1, ::-1, 1], rgb[::-1, ::-1, 2], rgb[::-1, ::-1, 3]
 
         # convert to SDL color 32bit BGRA format
         x = 0xff000000 | (r << 16) | (g << 8) | b
@@ -93,54 +88,3 @@ class SDLDisplay():
         self.pixels[:, :] = x[yy, xx]
         _ = sdl2.ext.get_events()
         self.window.refresh()
-
-
-class DotstarDisplay():
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.strip = Adafruit_DotStar()
-        self.strip.begin()
-
-    def serialize_grid(self, grid):
-        # views were causing mirror images on flipped columns
-        # when assigning to self
-        # FIXME: remove the copies
-
-        # RGB->BGR
-        g = np.copy(grid)
-        g[:, :, 1:] = grid[:, :, 3:0:-1]
-
-
-        # invert every other column for Biofeedback Cube Mark 1
-        # which is laid out in Z-order
-        g[:, 1::2, :] = np.copy(g[::-1, 1::2, :])
-
-        # transpose so ravel outputs colors first, then rows, then cols 
-        # could use .transpose(1, 0, 2) instead
-        return np.swapaxes(g, 0, 1).ravel()
-
-    def draw(self, grid, brightness=1.0, gamma=2.0):
-        arr = self.serialize_grid(grid)
-        arr *= brightness
-        gamma_corrected = np.clip(arr, 0, 1) ** gamma
-        # disable gamma correction
-        # gamma_corrected = arr
-
-        u8 = (gamma_corrected * 255.0).astype(np.uint8)
-        u8[0::4] = 0xff  # dotstar format is (0xff,r,g,b)
-        _bytes = u8.tobytes()
-
-        self.strip.show(_bytes )
-
-
-def init(rows, cols, sdl=True):
-    global _display
-    if sdl:
-        _display = SDLDisplay(rows, cols)
-    else:
-        _display = DotstarDisplay(rows, cols)
-
-
-def draw(grid, brightness=1.0):
-    _display.draw(grid, brightness=brightness)

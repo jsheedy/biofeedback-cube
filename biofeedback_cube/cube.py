@@ -11,12 +11,12 @@ import sys
 import time
 import traceback
 
-from dataclasses import dataclass
 from pythonosc import udp_client
 import uvloop
 
 from biofeedback_cube.audio import play_sample
 from biofeedback_cube import exceptions
+from biofeedback_cube.hydra import hydra
 from biofeedback_cube import osc
 from biofeedback_cube import buffer
 from biofeedback_cube import display
@@ -27,44 +27,12 @@ logger = logging.getLogger(__name__)
 SAMPLING_DELAY = 1/20
 
 t0 = time.time()
+
 queue = Queue()
-
-
-@dataclass
-class Hydra():
-    x: float = 0.5
-    y: float = 0.5
-    z: float = 0.5
-
-    xyz_x: float = 0.5
-    xyz_y: float = 0.5
-    xyz_z: float = 0.5
-
-    a: float = 0.5
-    b: float = 0.5
-    c: float = 0.5
-    d: float = 0.5
-    e: float = 0.5
-    f: float = 0.5
-    g: float = 0.5
-
-    pulse: float = 0.5
-    play: bool = True
-    gain: float = 0.0
-    mode: int = 9
-    shutdown: bool = False
-    last_update: float = 0
-
-    def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        if name not in ('last_update', 'pulse'):
-            self.last_update = time.time() - t0
-
 
 ROWS = 68
 COLS = 8
 
-hydra = Hydra()
 buff = buffer.Buffer(ROWS, COLS, hydra=hydra)
 
 
