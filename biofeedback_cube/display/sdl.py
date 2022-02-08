@@ -22,12 +22,11 @@ except ImportError:
 class SDLDisplay():
     mode_iter = itertools.cycle(Modes)
 
-    def __init__(self, rows, cols, width=900, height=900):
+    def __init__(self, rows, cols, width=600, height=600):
         self.cols = cols
         self.rows = rows
         self.width = width
         self.height = height
-        # self.scale = scale
 
         sdl2.ext.init()
         self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(self.width, self.height))

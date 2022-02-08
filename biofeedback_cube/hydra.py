@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import time
 from typing import Set, Tuple
 
+from .modes import Modes
 from .osc import update_client
 
 
@@ -27,7 +28,7 @@ class Hydra():
     f: float = 0.5
     g: float = 0.5
 
-    mode: int = 9
+    mode: int = Modes.FIRE.value
     shutdown: bool = False
     last_update: float = 0
 
