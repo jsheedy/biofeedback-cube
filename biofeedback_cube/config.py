@@ -1,0 +1,2 @@
+HEIGHT = 68
+WIDTH = 68

@@ -31,7 +31,6 @@ class Hydra():
     shutdown: bool = False
     last_update: float = 0
 
-
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
         if name not in ('last_update', 'pulse'):
@@ -39,5 +38,10 @@ class Hydra():
 
         for client in self.clients:
             update_client(client, name, value)
+
+    def fresh(self, t):
+        """ return boolean whether hydra has been updated recently """
+        dt = t - self.last_update
+        return dt < .3
 
 hydra = Hydra()
