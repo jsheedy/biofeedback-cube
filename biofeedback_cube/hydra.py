@@ -20,9 +20,9 @@ class Hydra():
     xyz_y: float = 0.5
     xyz_z: float = 0.5
 
-    a: float = 0.5
-    b: float = 0.5
-    c: float = 0.5
+    a: float = 0.9
+    b: float = 0.3
+    c: float = 0.1
     d: float = 0.5
     e: float = 0.5
     f: float = 0.5

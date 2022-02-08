@@ -33,7 +33,7 @@ queue = Queue()
 ROWS = 68
 COLS = 8
 
-buff = buffer.Buffer(ROWS, COLS, hydra=hydra)
+buff = buffer.Buffer(ROWS, COLS)
 
 
 def parse_args():
@@ -65,7 +65,7 @@ def render(rows, cols, reload=False):
         if reload:
             global buff
             importlib.reload(buffer)
-            b2 = buffer.Buffer(rows, cols, hydra)
+            b2 = buffer.Buffer(rows, cols)
             b2.locals = buff.locals
             buff = b2
         buff.update(t)
