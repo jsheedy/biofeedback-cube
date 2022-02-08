@@ -3,7 +3,7 @@ import time
 from typing import Set, Tuple
 
 from .modes import Modes
-from .osc import update_client
+from .osc import update_client, update_client_xy
 
 
 t0 = time.time()
@@ -28,7 +28,7 @@ class Hydra():
     f: float = 0.5
     g: float = 0.5
 
-    mode: int = Modes.FIRE.value
+    mode: Modes = Modes.FIRE.value
     shutdown: bool = False
     last_update: float = 0
 
@@ -38,7 +38,10 @@ class Hydra():
             self.last_update = time.time() - t0
 
         for client in self.clients:
-            update_client(client, name, value)
+            if name in ('x', 'y'):
+                update_client_xy(client, self.x, self.y)
+            else:
+                update_client(client, name, value)
 
     def fresh(self, t):
         """ return boolean whether hydra has been updated recently """

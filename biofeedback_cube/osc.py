@@ -8,6 +8,9 @@ from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 from pythonosc import udp_client
 
+from .modes import Modes
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,6 +18,12 @@ def update_client(client, name, value):
     ip, port = client
     client = udp_client.SimpleUDPClient(ip, port)
     client.send_message(f'/hydra/{name}', value)
+
+
+def update_client_xy(client, x, y):
+    ip, port = client
+    client = udp_client.SimpleUDPClient(ip, port)
+    client.send_message(f'/hydra/xy', x, y)
 
 
 def hydra_xy_handler(addr, args, x, y, **kwargs):
@@ -48,9 +57,13 @@ def mode_handler(addr, args, value, **kwargs):
         mode_l = addr.split('/')
         mode_row = int(mode_l[-2]) - 1
         mode_col = int(mode_l[-1]) - 1
-        mode = mode_col * 3 + mode_row
+        mode = mode_col * 5 + mode_row
         logger.info(f'setting hydra mode {mode}')
-        hydra.mode = mode
+        try:
+            Modes(mode)
+            hydra.mode = mode
+        except ValueError:
+            logger.error(f'unable to set hydra mode {mode}')
 
 
 def shutdown_handler(addr, args, value, **kwargs):
