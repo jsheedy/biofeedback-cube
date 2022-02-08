@@ -96,7 +96,8 @@ class Buffer():
             Modes.PLASMA: std.plasma,
             Modes.PLASMA2: std.plasma2,
             Modes.STROBE: std.strobe,
-            Modes.EARLY_FIRE: std.early_fire
+            Modes.EARLY_FIRE: std.early_fire,
+            Modes.FIRE: fire
         }
 
         self.fade(self.hydra.d)
