@@ -1,17 +1,17 @@
 import colorsys
+from functools import partial
 import logging
-import math
 import operator
 import random
 
 import numpy as np
-from punyty.vector import Vector3
-from punyty.objects import Cube
-from punyty.renderers import ArrayRenderer
-from punyty.scene import Scene
 from scipy.ndimage import filters
 
 from biofeedback_cube.utils import open_image, sin, cos
+from biofeedback_cube.modes import Modes
+from biofeedback_cube.fx import std
+from biofeedback_cube.fx.fire import fire
+from biofeedback_cube.fx.punyty import punyty
 
 logger = logging.getLogger(__name__)
 
@@ -41,30 +41,15 @@ class Buffer():
 
         self.buffer = np.zeros(shape=(self.height, self.width, 4), dtype=np.float64)
 
-        self.yy, self.xx = np.mgrid[0:1:complex(0, self.height), 0:1:complex(0, self.width)]
-
         self.ix, self.iy = np.meshgrid(
             np.linspace(0, self.width, self.cols, endpoint=False, dtype=np.int32),
             np.linspace(0, self.height, self.rows, endpoint=False, dtype=np.int32)
         )
-        self.iix = np.arange(self.width, dtype=np.int32)
-        self.iiy = np.arange(self.height, dtype=np.int32)
 
         self.locals = {
             'layer_op': operator.iadd,
             's': -1
         }
-
-        # for punytty mode, should isolate this
-        self.scene = Scene()
-        self.cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3))
-        self.scene.add_object(self.cube)
-        self.renderer = ArrayRenderer(
-            target_array=self.buffer[:, :, 1:],
-            draw_edges=False,
-            draw_wireframe=False,
-            draw_polys=True
-        )
 
     @property
     def grid(self):
@@ -76,150 +61,9 @@ class Buffer():
     def layer_op(self):
         return self.locals['layer_op']
 
-    def hydra_fresh(self, t):
-        """ return boolean whether hydra has been updated recently """
-        dt = t - self.hydra.last_update
-        return dt < .3
-
-    def punyty(self, t):
-
-        if self.hydra.f < 0.2:
-            self.cube.rotate(Vector3(-3+self.hydra.a*6, -3+self.hydra.b*6, -3+self.hydra.c*6))
-            self.cube.color = Vector3(self.hydra.a, self.hydra.b, self.hydra.c)
-        else:
-            self.cube.rotate(Vector3(math.sin(.2*t), math.sin(0.23*t), math.cos(0.25*t)))
-            color = Vector3(math.sin(.1*t), math.sin(0.08*t), math.cos(0.1515*t))
-            self.cube.color = color
-
-        self.renderer.render(self.scene)
-
-    def starfield(self, t):
-        for i in range(int(30*self.hydra.x)):
-            y = random.randint(0, self.height-1)
-            x = random.randint(0, self.width-1)
-            self.grid[y, x, :] = random.random(), random.random(), random.random()
-
-    def test_grid(self, t, width=1, weight=1.0):
-        if self.hydra_fresh(t):
-            y = int((self.height-1) * self.hydra.a)
-        else:
-            f = (self.hydra.b / .5) ** 2
-            y = int(sin(f*t)*(self.height-1))
-
-        h = sin(.2*t)
-        s = .5 + .5*cos(.1*t)
-        v = .5 + 0.5*cos(t)*sin(t)
-        color = colorsys.hsv_to_rgb(h, s, v)
-        self.grid[y, :, :] += color
-
-    def __sunrise(self, t):
-        blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.width), 0)
-        red = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
-        green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.width), 0)
-        self.grid[:, :, 0] = blue
-
-    def circle(self, t, color=(.7, .4, .2), weight=1.0):
-        radius = 0.05
-
-        if self.hydra_fresh(t):
-            y = 1-self.hydra.y
-            x = 1-self.hydra.x
-        else:
-            y = 0.25 + 0.5*sin(0.5*t)
-            x = 0.25 + 0.5*cos(0.501*t)
-
-        color = (self.hydra.a, self.hydra.b, self.hydra.c)
-        mask = ((self.xx-x)**2 + (self.yy - y)**2) < radius
-        self.grid[mask, :] += weight * np.array(color)
-
-    def tent(self, t, color=(.7, .2, .4), weight=1.0):
-        """ similar to a circle but like a circus tent """
-        r = 0.1
-        x = 1-self.hydra.x
-        y = 1-self.hydra.y
-
-        tent = np.clip(1-np.sqrt((r*(self.xx-x))**2 + (r*(self.yy-y))**2), 0, 1)
-        r, g, b = color
-
-        self.grid[:, :, 0] = weight * r * tent
-        self.grid[:, :, 1] = weight * g * tent
-        self.grid[:, :, 2] = weight * b * tent
-
-    def lines(self, t):
-        rgb = (0.2, 0.6, 0.8)
-        f = 00.8
-        r = 0.9
-        pts = (
-            int(self.width * (r*np.sin(f*t) + 0.5)),
-            int(self.height * (r*np.cos(f*t) + 0.5)),
-            int(self.width * (r*np.sin(f*t + np.pi) + 0.5)),
-            int(self.height * (r*np.cos(f*t + np.pi) + 0.5)),
-        )
-        self.renderer.draw_line(pts, rgb)
-
-    def hydra_line(self, t):
-        rgb = (self.hydra.a, self.hydra.b, self.hydra.c)
-        x = self.hydra.x
-        y = self.hydra.y
-        pts = (
-            0, 0, int(self.width*y), int(self.height*x)
-        )
-        self.renderer.draw_line(pts, rgb)
-
-    def plasma(self, t):
-        tau = t * self.hydra.f * 10
-        f = .01 + self.hydra.g * 10
-        field = (
-            np.sin(2 * np.pi * f * self.yy + .25*tau)
-            + np.sin(2 * np.pi * f * self.xx + .6*tau)
-            + np.sin(10 * self.xx * f * self.yy + .41*tau)
-            + np.sin(10 * self.xx**2 * f * self.yy**2 + .34*tau)
-        )
-        self.grid[:, :, 0] = self.hydra.a * sin(field)
-        self.grid[:, :, 1] = self.hydra.b * sin(1.2*field + tau)
-        self.grid[:, :, 2] = self.hydra.c * sin(0.2*field + 2*tau)
-
-    def cmap(self, x):
-        xp = [0.0, 0.66, 0.66, 0.78, 0.78, 0.82, 0.82, 1.0]
-
-        rp = [0.0, 0.00, 1.00, 1.00, 0.5, 0.5, 0.2, 0.2]
-        gp = [0.9, 0.90, 0.90, 0.90, 0.1, 0.1, 0.7, 0.7]
-        bp = [1.0, 1.00, 0.75, 0.75, 0.3, 0.3, 0.4, 0.4]
-
-        r = np.interp(x, xp, rp)
-        g = np.interp(x, xp, gp)
-        b = np.interp(x, xp, bp)
-        return r,g,b
-
-    def plasma2(self, t):
-        tau = t * self.hydra.f
-        field = sin(
-            np.sin(2 * np.pi * self.yy + .25*tau)
-            + np.sin(2 * np.pi * self.xx + .6*tau)
-            + np.sin(10 * self.xx * self.yy + .41*tau)
-            + np.sin(10 * self.xx**2 * self.yy**2 + .34*tau)
-        )
-
-        r,g,b = self.cmap(field)
-        self.grid[:, :, 0] = r
-        self.grid[:, :, 1] = g
-        self.grid[:, :, 2] = b
-
-    def rgb(self, t):
-        f = .1 + 100 * self.hydra.f
-        r, g, b = (self.hydra.a, self.hydra.b, self.hydra.c)
-        logger.debug(self.hydra.f)
-        if self.hydra.f >= 0.99 or sin(f*t) > .5:
-            self.clear((r, g, b))
-        else:
-            self.clear((0, 0, 0))
-
-    def clear(self, rgb):
-        self.grid[:] = rgb
-
     def fade(self, amt=0.8):
         log_amt = np.log10(1 + amt * (10 - 1))
-        self.grid[:] *= log_amt 
+        self.grid[:] *= log_amt
 
     def blur(self, sigma=2):
         self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
@@ -227,29 +71,6 @@ class Buffer():
     def bright(self, bright=1.0):
         self.grid[:] *= bright
 
-    def shutdown(self, t):
-        f = 10 
-        row = sin(f*t) > 0.5 and 1 or 0
-        self.grid[row::4, :, 0] = 0.5
-        self.grid[abs(1 - row)::4, :, 1] = 0.2 
-        self.grid[row::4, :, 2] = 0.0 
-
-    def image(self, t, fname, scale=1.0):
-        x0 = int(-40 + 80 * (1-self.hydra.x))
-        y0 = int(-40 + 80 * (1-self.hydra.y))
-
-        rgba = open_image(fname, scale=scale)
-        im = rgba[:, :, :3]
-        im = im[::-1, ::-1, :]
-
-        h, w = im.shape[:2]
-
-        x_i = np.take(self.iix, range(x0, x0+w), mode='wrap')
-        y_i = np.take(self.iiy, range(y0, y0+h), mode='wrap')
-
-        xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
-
-        self.grid[yy_i, xx_i, :] = im
 
     def select_op(self):
         if self.hydra.x < 0.3:
@@ -263,50 +84,23 @@ class Buffer():
 
     def update(self, t):
 
-        if self.hydra.shutdown:
-            self.shutdown(t)
-            return
+        mode_map = {
+            Modes.MARIO: std.mario,
+            Modes.CIRCLE: std.circle,
+            Modes.TEST_GRID: std.test_grid,
+            Modes.TV_TEST: std.tv_test,
+            Modes.HEART: std.heart,
+            Modes.JC: std.jc,
+            Modes.STARFIELD: std.starfield,
+            Modes.PUNYTY: punyty,
+            Modes.PLASMA: std.plasma,
+            Modes.PLASMA2: std.plasma2,
+            Modes.STROBE: std.strobe,
+            Modes.EARLY_FIRE: std.early_fire
+        }
 
         self.fade(self.hydra.d)
-
-        if self.hydra.mode == 0:
-            self.image(t, 'mario.png', scale=0.28)
-
-        elif self.hydra.mode == 1:
-            self.hydra_line(t)
-
-        elif self.hydra.mode == 2:
-            self.circle(t)
-
-        elif self.hydra.mode == 3:
-            self.test_grid(t, width=2)
-
-        elif self.hydra.mode == 4:
-            self.image(t, 'tv-test.png', scale=0.08)
-
-        elif self.hydra.mode == 5:
-            self.image(t, 'heart.png', scale=0.12)
-
-        elif self.hydra.mode == 6:
-            self.image(t, 'j+c.png', scale=0.3)
-
-        elif self.hydra.mode == 7:
-            self.starfield(t)
-
-        elif self.hydra.mode == 8:
-            self.punyty(t)
-
-        elif self.hydra.mode == 9:
-            self.plasma(t)
-
-        elif self.hydra.mode == 10:
-            self.plasma2(t)
-
-        elif self.hydra.mode == 11:
-            self.rgb(t)
-
-        elif self.hydra.mode == 12:
-            self.shutdown(t)
+        mode_map[Modes(self.hydra.mode)](self.grid, t)
 
     def get_grid(self):
         slice_width = self.width // self.cols

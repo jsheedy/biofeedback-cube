@@ -1,4 +1,5 @@
 import ctypes
+import itertools
 import logging
 from types import SimpleNamespace
 
@@ -6,6 +7,7 @@ import numpy as np
 
 from biofeedback_cube import exceptions
 from biofeedback_cube.hydra import hydra
+from biofeedback_cube.modes import Modes
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,7 @@ except ImportError:
 
 
 class SDLDisplay():
+    mode_iter = itertools.cycle(Modes)
 
     def __init__(self, rows, cols, width=900, height=900):
         self.cols = cols
@@ -55,8 +58,7 @@ class SDLDisplay():
             # if event.type == sdl2.SDL_PRESSED:
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
-                    hydra.mode = (hydra.mode + 1 ) % 13
-                    # self.state.paused = not self.state.paused
+                    hydra.mode = next(self.mode_iter).value
                 elif event.key.keysym.sym == 61:  # +
                     if self.state.speed < 0.001:
                         self.state.speed += 0.0000025
