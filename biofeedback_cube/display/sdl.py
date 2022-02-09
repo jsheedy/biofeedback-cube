@@ -93,6 +93,7 @@ class SDLDisplay():
 
     def draw(self, grid, brightness=1.0, gamma=1.0):
         self.handle_events()
+
         if not self.state.running:
             raise exceptions.UserQuit('user quit')
 
@@ -106,5 +107,4 @@ class SDLDisplay():
         xc = np.linspace(0, self.cols, self.width, endpoint=False, dtype=np.int32)
         yy, xx = np.meshgrid(yc, xc)
         self.pixels[:, :] = x[yy, xx]
-        _ = sdl2.ext.get_events()
         self.window.refresh()

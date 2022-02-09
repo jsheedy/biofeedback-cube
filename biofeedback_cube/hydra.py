@@ -27,8 +27,18 @@ class Hydra():
     e: float = 0.5
     f: float = 0.5
     g: float = 0.5
+    h: float = 0.5
+    i: float = 0.5
+    j: float = 0.5
+    k: float = 0.5
+    l: float = 0.5
+    m: float = 0.5
+    n: float = 0.5
+    o: float = 0.5
+    p: float = 0.5
+    q: float = 0.5
 
-    mode: Modes = Modes.FIRE.value
+    mode: Modes = Modes.MARIO.value
     shutdown: bool = False
     last_update: float = 0
 

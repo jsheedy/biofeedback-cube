@@ -61,8 +61,9 @@ class Buffer():
         log_amt = np.log10(1 + amt * (10 - 1))
         self.grid[:] *= log_amt
 
-    def blur(self, sigma=2):
-        self.grid[:] = filters.gaussian_filter(self.grid, (sigma, sigma,0))
+    def blur(self, sigma: float = 100.0):
+        self.grid[:] = filters.gaussian_filter(self.grid, sigma=sigma)
+        # self.grid[:] = filters.sobel(self.grid)
 
     def bright(self, bright=1.0):
         self.grid[:] *= bright
@@ -81,7 +82,8 @@ class Buffer():
 
         self.fade(hydra.d)
         MODE_MAP[Modes(hydra.mode)](self.grid, t)
-        self.rotate(hydra.g)
+        self.rotate(hydra.h)
+        self.blur(hydra.i * 200)
 
     def get_grid(self):
         slice_width = self.width // self.cols
