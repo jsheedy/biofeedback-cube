@@ -16,10 +16,12 @@ import uvloop
 
 from biofeedback_cube.hydra import hydra, save_hydra
 
-from biofeedback_cube import exceptions
-from biofeedback_cube import osc
 from biofeedback_cube import buffer
 from biofeedback_cube import display
+from biofeedback_cube.hydra import hydra, save_hydra
+from biofeedback_cube import exceptions
+from biofeedback_cube import osc
+from biofeedback_cube import utils
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,9 +51,14 @@ def parse_args():
 
 @asyncio.coroutine
 def main_loop(coros):
-    done, _pending = yield from asyncio.wait(coros, return_when=asyncio.FIRST_EXCEPTION)
+    done, _pending = yield from asyncio.wait(coros, return_when=asyncio.FIRST_COMPLETED)
     for t in done:
         print(f'{t} is done')
+        shutdown = hydra.shutdown
+        save_hydra()
+        if shutdown:
+            utils.shutdown()
+
         if t.exception():
             traceback_str = ''.join(traceback.format_tb(t.exception().__traceback__))
             logger.critical(traceback_str)
@@ -72,14 +79,19 @@ def render(rows, cols, reload=False):
         return buff.get_grid()
 
     except exceptions.UserQuit:
+        logger.exception('user quit')
         raise
     except Exception:
         logger.exception('whoops 🙀')
+        raise
 
 
 @asyncio.coroutine
 def async_render(rows, cols, reload=False):
     while True:
+        if hydra.shutdown:
+            logger.warning(f'hydra shutdown, exiting render loop')
+            break
         grid = render(rows, cols, reload=reload)
         yield from asyncio.sleep(0.010)
         brightness = hydra.e

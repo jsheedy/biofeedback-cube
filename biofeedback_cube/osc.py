@@ -11,6 +11,7 @@ from pythonosc.osc_server import AsyncIOOSCUDPServer
 from pythonosc import udp_client
 
 from .modes import Modes
+from . import utils
 
 
 logger = logging.getLogger(__name__)
@@ -23,48 +24,59 @@ def update_client(client, name, value):
     client.send_message(f'/hydra/{name}', value)
 
 
-def hydra_callback(name, value):
+def hydra_callback(hydra, name, value):
     for client in clients:
         if name in ('x', 'y'):
-            # update_client(client, 'xy' (self.x, self.y))
-            pass
+            update_client(client, 'xy', (hydra.x, hydra.y))
         else:
             update_client(client, name, value)
 
 
-def add_client(client, addr, args, **kwargs):
+def add_client(client, _addr, args, **kwargs):
     hydra = args[0]
     if client not in clients:
         sync_client(client, None, args)
     clients.add(client)
 
 
-def sync_client(client, addr, args, **kwargs):
+def notify_clients(client, attr, value):
+    for c in filter(lambda c: c != client, clients):
+        update_client(c, attr, value)
+
+
+def sync_client(client, _addr, args, **kwargs):
     hydra = args[0]
 
+    # set [a-w] fields
     for field in fields(hydra):
-        if field.type is float and len(field.name) == 1:
+        if field.type is float and len(field.name) == 1 and field.name not in ('x', 'y'):
             update_client(client, field.name, getattr(hydra, field.name))
 
+    update_client(client, 'xy', (hydra.x, hydra.y))
 
-def hydra_xy_handler(addr, args, x, y, **kwargs):
+
+def hydra_xy_handler(client, _addr, args, x, y, **kwargs):
     hydra = args[0]
     hydra.x = x
     hydra.y = y
-
-
-def hydra_accxyz_handler(addr, args, x, y, z, **kwargs):
-    hydra = args[0]
-    hydra.xyz_x = x
-    hydra.xyz_y = y
-    hydra.xyz_z = z
+    notify_clients(client, 'xy', (hydra.x, hydra.y))
+    clients.add(client)
 
 
 def hydra_handler(client, addr, args, value, **kwargs):
     hydra = args[0]
     dim = addr.split('/')[-1]
     setattr(hydra, dim, value)
+    notify_clients(client, dim, value)
     clients.add(client)
+
+
+def hydra_accxyz_handler(_addr, args, x, y, z, **kwargs):
+    hydra = args[0]
+    hydra.xyz_x = x
+    hydra.xyz_y = y
+    hydra.xyz_z = z
+
 
 def mode_handler(addr, args, value, **kwargs):
     hydra = args[0]
@@ -82,9 +94,7 @@ def mode_handler(addr, args, value, **kwargs):
 
 def shutdown_handler(addr, args, value, **kwargs):
     hydra = args[0]
-    logger.critical("shutting down")
     hydra.shutdown = True
-    os.system('sudo shutdown -r now')
 
 
 @asyncio.coroutine
@@ -117,7 +127,7 @@ def server(host, port, hydra):
     logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
         logger.info(f'{pattern}')
-        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (sync_client, add_client, hydra_handler)))
+        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (sync_client, add_client, hydra_xy_handler, hydra_handler)))
 
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)

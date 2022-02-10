@@ -63,14 +63,16 @@ def save_hydra():
     if not hydra.dirty:
         return
     hydra.dirty = False
+    hydra.shutdown = False
     logger.info(f'dumping hydra state to {HYDRA_STATE_FILE}')
     with open(HYDRA_STATE_FILE, 'wb') as f:
         pickle.dump(hydra, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-if Path(HYDRA_STATE_FILE).is_file():
+try:
     with open(HYDRA_STATE_FILE, 'rb') as f:
         hydra = pickle.load(f)
         logger.warning(f'loading hydra state {hydra}')
-else:
+except Exception:
+    logger.exception(f'unable to initialize hydra with {HYDRA_STATE_FILE}')
     hydra = Hydra()
