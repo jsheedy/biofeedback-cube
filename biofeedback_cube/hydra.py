@@ -1,11 +1,17 @@
 from dataclasses import dataclass, field
+
+import logging
+from pathlib import Path
+import pickle
 import time
 from typing import Set, Tuple
 
+from .config import HYDRA_STATE_FILE
 from .modes import Modes
-from .osc import update_client, update_client_xy
+from .osc import update_client
 
 
+logger = logging.getLogger(__name__)
 t0 = time.time()
 
 @dataclass
@@ -42,14 +48,18 @@ class Hydra():
     shutdown: bool = False
     last_update: float = 0
 
+    dirty = False
+
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        if name not in ('last_update', 'pulse'):
+        if name not in ('last_update', 'dirty'):
+            self.dirty = True
             self.last_update = time.time() - t0
 
         for client in self.clients:
             if name in ('x', 'y'):
-                update_client_xy(client, self.x, self.y)
+                # update_client(client, 'xy' (self.x, self.y))
+                pass
             else:
                 update_client(client, name, value)
 
@@ -58,4 +68,18 @@ class Hydra():
         dt = t - self.last_update
         return dt < .3
 
-hydra = Hydra()
+
+def save_hydra():
+    if not hydra.dirty:
+        return
+    hydra.dirty = False
+    logger.info(f'dumping hydra state to {HYDRA_STATE_FILE}')
+    with open(HYDRA_STATE_FILE, 'wb') as f:
+        pickle.dump(hydra, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+if Path(HYDRA_STATE_FILE).is_file():
+    with open(HYDRA_STATE_FILE, 'rb') as f:
+        hydra = pickle.load(f)
+else:
+    hydra = Hydra()

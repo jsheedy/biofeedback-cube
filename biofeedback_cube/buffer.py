@@ -81,7 +81,7 @@ class Buffer():
     def update(self, t):
 
         self.fade(hydra.d)
-        MODE_MAP[Modes(hydra.mode)](self.grid, t)
+        MODE_MAP[hydra.mode](self.grid, t)
         self.rotate(hydra.h)
         # self.blur(hydra.i * 200)
 

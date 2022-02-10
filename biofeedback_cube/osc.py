@@ -1,4 +1,6 @@
 import asyncio
+from asyncio.proactor_events import _ProactorBaseWritePipeTransport
+from dataclasses import fields
 from functools import partial
 from itertools import starmap
 import logging
@@ -20,10 +22,19 @@ def update_client(client, name, value):
     client.send_message(f'/hydra/{name}', value)
 
 
-def update_client_xy(client, x, y):
-    ip, port = client
-    client = udp_client.SimpleUDPClient(ip, port)
-    client.send_message(f'/hydra/xy', (x, y))
+def add_client(client, addr, args, **kwargs):
+    hydra = args[0]
+    if client not in hydra.clients:
+        sync_client(client, None, args)
+    hydra.clients.add(client)
+
+
+def sync_client(client, addr, args, **kwargs):
+    hydra = args[0]
+
+    for field in fields(hydra):
+        if field.type is float and len(field.name) == 1:
+            update_client(client, field.name, getattr(hydra, field.name))
 
 
 def hydra_xy_handler(addr, args, x, y, **kwargs):
@@ -45,12 +56,6 @@ def hydra_handler(client, addr, args, value, **kwargs):
     setattr(hydra, dim, value)
     hydra.clients.add(client)
 
-
-def add_client(client, addr, args, **kwargs):
-    hydra = args[0]
-    hydra.clients.add(client)
-
-
 def mode_handler(addr, args, value, **kwargs):
     hydra = args[0]
     if int(value) == 1:
@@ -60,8 +65,7 @@ def mode_handler(addr, args, value, **kwargs):
         mode = mode_col * 5 + mode_row
         logger.info(f'setting hydra mode {mode}')
         try:
-            Modes(mode)
-            hydra.mode = mode
+            hydra.mode = Modes(mode)
         except ValueError:
             logger.error(f'unable to set hydra mode {mode}')
 
@@ -103,7 +107,7 @@ def server(host, port, hydra):
     logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
         logger.info(f'{pattern}')
-        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (add_client, hydra_handler)))
+        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (sync_client, add_client, hydra_handler)))
 
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)

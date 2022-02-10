@@ -2,7 +2,6 @@
 
 import argparse
 import asyncio
-import concurrent
 import importlib
 import logging
 from multiprocessing import Process, Queue
@@ -14,9 +13,10 @@ import traceback
 from pythonosc import udp_client
 import uvloop
 
-from biofeedback_cube.audio import play_sample
+
+from biofeedback_cube.hydra import hydra, save_hydra
+
 from biofeedback_cube import exceptions
-from biofeedback_cube.hydra import hydra
 from biofeedback_cube import osc
 from biofeedback_cube import buffer
 from biofeedback_cube import display
@@ -100,27 +100,18 @@ def process_draw():
 
 
 @asyncio.coroutine
-def audio(hydra):
+def persist_hydra():
+
     while True:
-        if hydra.play:
-            executor = concurrent.futures.ProcessPoolExecutor()
-            # executor = concurrent.futures.ThreadPoolExecutor()
-            fname = '/home/pi/Music/lowAsharp2.wav'
-            loop = asyncio.get_event_loop()
-            task = loop.run_in_executor(executor, play_sample, fname)
-            while not task.done() and hydra.play:
-                yield from asyncio.sleep(.1)
-            if not task.done():
-                task.cancel()
-            executor.shutdown(wait=False)
-        yield from asyncio.sleep(.1)
+        yield from asyncio.sleep(5)
+        save_hydra()
 
 
 def async_main(rows, cols, args):
     coros = (
-        # audio(hydra),
         async_render(rows, cols, reload=args.reload),
         osc.server(args.host, args.port, hydra),
+        persist_hydra(),
     )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
@@ -147,11 +138,6 @@ def main():
     display.init(ROWS, COLS, sdl=args.simulator)
 
     reload = args.reload or os.getenv('RELOAD')
-
-    # if reload:
-        # logger.info(f'live coding mode enabled')
-    # else:
-        # logger.info(f'live coding mode disabled')
 
     # process_main(ROWS, COLS, args.reload)
     async_main(ROWS, COLS, args)
