@@ -8,7 +8,7 @@ from typing import Set, Tuple
 
 from .config import HYDRA_STATE_FILE
 from .modes import Modes
-from .osc import update_client
+from .osc import hydra_callback
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,6 @@ t0 = time.time()
 
 @dataclass
 class Hydra():
-    clients: Set[Tuple] = field(default_factory=set)
-
     x: float = 0.5
     y: float = 0.5
     z: float = 0.5
@@ -56,18 +54,10 @@ class Hydra():
             self.dirty = True
             self.last_update = time.time() - t0
 
-        for client in self.clients:
-            if name in ('x', 'y'):
-                # update_client(client, 'xy' (self.x, self.y))
-                pass
-            else:
-                update_client(client, name, value)
-
     def fresh(self, t):
         """ return boolean whether hydra has been updated recently """
         dt = t - self.last_update
         return dt < .3
-
 
 def save_hydra():
     if not hydra.dirty:

@@ -15,6 +15,7 @@ from .modes import Modes
 
 logger = logging.getLogger(__name__)
 
+clients = set()
 
 def update_client(client, name, value):
     ip, port = client
@@ -22,11 +23,20 @@ def update_client(client, name, value):
     client.send_message(f'/hydra/{name}', value)
 
 
+def hydra_callback(name, value):
+    for client in clients:
+        if name in ('x', 'y'):
+            # update_client(client, 'xy' (self.x, self.y))
+            pass
+        else:
+            update_client(client, name, value)
+
+
 def add_client(client, addr, args, **kwargs):
     hydra = args[0]
-    if client not in hydra.clients:
+    if client not in clients:
         sync_client(client, None, args)
-    hydra.clients.add(client)
+    clients.add(client)
 
 
 def sync_client(client, addr, args, **kwargs):
@@ -54,7 +64,7 @@ def hydra_handler(client, addr, args, value, **kwargs):
     hydra = args[0]
     dim = addr.split('/')[-1]
     setattr(hydra, dim, value)
-    hydra.clients.add(client)
+    clients.add(client)
 
 def mode_handler(addr, args, value, **kwargs):
     hydra = args[0]
