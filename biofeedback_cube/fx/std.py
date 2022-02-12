@@ -120,7 +120,7 @@ def cmap(x):
     g = np.interp(x, xp, gp)
     b = np.interp(x, xp, bp)
 
-    return r,g,b
+    return r, g, b
 
 
 def clear(grid, rgb):
@@ -136,7 +136,7 @@ def plasma2(grid, t):
         + np.sin(10 * xx**2 * yy**2 + .34*tau)
     )
 
-    r,g,b = cmap(field)
+    r, g, b = cmap(field)
     grid[:, :, 0] = r
     grid[:, :, 1] = g
     grid[:, :, 2] = b
@@ -157,6 +157,7 @@ def starfield(grid, t):
         x = random.randint(0, WIDTH-1)
         grid[y, x, :] = random.random(), random.random(), random.random()
 
+
 def test_grid(grid, t, WIDTH=3, weight=1.0):
     if hydra.fresh(t):
         y = int((HEIGHT-1) * hydra.a)
@@ -169,10 +170,3 @@ def test_grid(grid, t, WIDTH=3, weight=1.0):
     v = .5 + 0.5*cos(t)*sin(t)
     color = colorsys.hsv_to_rgb(h, s, v)
     grid[y, :, :] += color
-
-
-def __sunrise(grid, t):
-    blue = np.expand_dims(np.linspace(np.clip(t/20,0,1), np.clip(t/40,0,1), self.WIDTH), 0)
-    red = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.WIDTH), 0)
-    green = np.expand_dims(np.linspace(np.clip(t/40,0,1), np.clip(t/80,0,1), self.WIDTH), 0)
-    grid[:, :, 0] = blue

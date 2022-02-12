@@ -1,5 +1,4 @@
 import logging
-import operator
 
 import numpy as np
 from scipy.ndimage import filters, rotate
@@ -27,6 +26,7 @@ MODE_MAP = {
     Modes.EARLY_FIRE: std.early_fire,
     Modes.FIRE: fire
 }
+
 
 class Buffer():
     """ Holds an array Buffer.buffer of size=size, SxSx4 on which to draw.
@@ -89,4 +89,3 @@ class Buffer():
         slice_width = self.width // self.cols
         s = slice(0, slice_width * self.cols, slice_width)
         return self.buffer[:, s, :]
-

@@ -1,27 +1,20 @@
-#!/usr/bin/env python
-
 import argparse
 import asyncio
 import importlib
 import logging
 from multiprocessing import Process, Queue
-import os
 import sys
 import time
 import traceback
 
-from pythonosc import udp_client
 import uvloop
-
-
-from biofeedback_cube.hydra import hydra, save_hydra
 
 from biofeedback_cube import buffer
 from biofeedback_cube import display
-from biofeedback_cube.hydra import hydra, save_hydra
 from biofeedback_cube import exceptions
 from biofeedback_cube import osc
 from biofeedback_cube import utils
+from biofeedback_cube.hydra import hydra, save_hydra
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -90,7 +83,7 @@ def render(rows, cols, reload=False):
 def async_render(rows, cols, reload=False):
     while True:
         if hydra.shutdown:
-            logger.warning(f'hydra shutdown, exiting render loop')
+            logger.warning('hydra shutdown, exiting render loop')
             break
         grid = render(rows, cols, reload=reload)
         yield from asyncio.sleep(0.010)
@@ -133,7 +126,7 @@ def async_main(rows, cols, args):
 
 def process_main(rows, cols, reload):
 
-    p1 = Process(target=process_render, args=(rows, cols), kwargs={'reload':reload})
+    p1 = Process(target=process_render, args=(rows, cols), kwargs={'reload': reload})
     p2 = Process(target=process_draw)
     p1.start()
     p2.start()
@@ -149,8 +142,6 @@ def main():
         logger = logging.getLogger(__name__)
 
     display.init(ROWS, COLS, sdl=args.simulator)
-
-    reload = args.reload or os.getenv('RELOAD')
 
     # process_main(ROWS, COLS, args.reload)
     async_main(ROWS, COLS, args)

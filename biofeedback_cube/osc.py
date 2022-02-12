@@ -1,22 +1,18 @@
 import asyncio
-from asyncio.proactor_events import _ProactorBaseWritePipeTransport
 from dataclasses import fields
-from functools import partial
-from itertools import starmap
 import logging
-import os
 
 from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer
 from pythonosc import udp_client
 
 from .modes import Modes
-from . import utils
 
 
 logger = logging.getLogger(__name__)
 
 clients = set()
+
 
 def update_client(client, name, value):
     ip, port = client
@@ -33,7 +29,6 @@ def hydra_callback(hydra, name, value):
 
 
 def add_client(client, _addr, args, **kwargs):
-    hydra = args[0]
     if client not in clients:
         sync_client(client, None, args)
     clients.add(client)
@@ -127,10 +122,15 @@ def server(host, port, hydra):
     logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
         logger.info(f'{pattern}')
-        dsp.map(pattern, handler, hydra, needs_reply_address=(handler in (sync_client, add_client, hydra_xy_handler, hydra_handler)))
+        needs_reply_address = handler in (
+            sync_client,
+            add_client,
+            hydra_xy_handler,
+            hydra_handler
+        )
+        dsp.map(pattern, handler, hydra, needs_reply_address=needs_reply_address)
 
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
     transport, protocol = yield from server.create_serve_endpoint()
     yield from asyncio.sleep(86400*7)
-

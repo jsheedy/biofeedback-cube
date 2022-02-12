@@ -1,18 +1,16 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import logging
-from pathlib import Path
 import pickle
 import time
-from typing import Set, Tuple
 
 from .config import HYDRA_STATE_FILE
 from .modes import Modes
-from .osc import hydra_callback
 
 
 logger = logging.getLogger(__name__)
 t0 = time.time()
+
 
 @dataclass
 class Hydra():
@@ -58,6 +56,7 @@ class Hydra():
         """ return boolean whether hydra has been updated recently """
         dt = t - self.last_update
         return dt < .3
+
 
 def save_hydra():
     if not hydra.dirty:

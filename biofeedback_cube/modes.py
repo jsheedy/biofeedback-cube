@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Modes(Enum):
     MARIO = 0
     CIRCLE = 1

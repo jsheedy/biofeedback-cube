@@ -49,7 +49,6 @@ class SDLDisplay():
 
         self.keys_down = set()
 
-
     def handle_events(self):
         events = sdl2.ext.get_events()
         for event in events:
@@ -57,7 +56,7 @@ class SDLDisplay():
             # if event.type == sdl2.SDL_PRESSED:
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
-                    hydra.mode = next(self.mode_iter).value
+                    hydra.mode = next(self.mode_iter)
                 elif event.key.keysym.sym == 61:  # +
                     if self.state.speed < 0.001:
                         self.state.speed += 0.0000025
@@ -77,7 +76,7 @@ class SDLDisplay():
                 self.keys_down.clear()
 
             elif event.type == sdl2.SDL_MOUSEMOTION:
-                x, y = ctypes.c_int(0), ctypes.c_int(0) # Create two ctypes values
+                x, y = ctypes.c_int(0), ctypes.c_int(0)  # Create two ctypes values
                 _ = sdl2.mouse.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
                 y_normalized = y.value / self.height
                 x_normalized = x.value / self.width

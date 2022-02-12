@@ -17,7 +17,7 @@ kernel = np.array([
 
 def fire(grid, t):
     global fire_grid
-    fire_grid[0, :] = np.random.random((1, WIDTH ))
+    fire_grid[0, :] = np.random.random((1, WIDTH))
     modulated_kernel = kernel / (3.5 + 2 * hydra.f)
     fire_grid = convolve2d(fire_grid, modulated_kernel, mode='same', boundary='wrap')
     grid[:, :, 0] = hydra.a * fire_grid

@@ -39,5 +39,4 @@ def line_intersects_uv(x0, x1, y0, y1):
         if intersection and point_in_uv(*intersection):
             intersections.append(intersection)
 
-
     return intersections

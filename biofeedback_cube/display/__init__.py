@@ -3,6 +3,7 @@ from .sdl import SDLDisplay
 
 _display = None
 
+
 def init(rows, cols, sdl=True):
     global _display
     if sdl:

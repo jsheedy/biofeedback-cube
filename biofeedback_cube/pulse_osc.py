@@ -8,18 +8,18 @@ import struct
 import time
 
 from Adafruit_PureIO.smbus import SMBus
-import numpy as np
 from pythonosc import udp_client, osc_message_builder
 
 
 logger = logging.getLogger(__name__)
 
-FREQ = 40 
+FREQ = 40
 DELAY = 1 / FREQ
 BUF_LEN = FREQ * 2
 PULSE_SENSOR_ADDR = 0x09
 
 buffer = collections.deque([512]*BUF_LEN, BUF_LEN)
+
 
 @functools.lru_cache()
 def bus():
@@ -28,13 +28,16 @@ def bus():
     except FileNotFoundError:
         logger.warning('failed to init SMBus')
 
+
 _bus = bus()
+
 
 @functools.lru_cache()
 def client():
     host = '10.0.0.255'
     port = 37339
     return udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
+
 
 _client = client()
 _message = osc_message_builder.OscMessageBuilder('/pulse')
@@ -47,15 +50,18 @@ _sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 UDP_IP = "10.0.0.255"
 UDP_PORT = 37340
 
+
 def send_osc(value):
     args = (_message._args[0][0], value)
     _message._args[0] = args
     _client.send(_message.build())
     # _client.send_message("/pulse", value)
 
+
 def send_udp(value):
     message = bytes([int(255*value)])
     _sock.sendto(message, (UDP_IP, UDP_PORT))
+
 
 def read():
     raw_data = _bus.read_bytes(PULSE_SENSOR_ADDR, 2)

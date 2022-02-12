@@ -9,6 +9,7 @@ try:
 except ImportError as e:
     logger.warning(f'unable to import audio: {e}')
 
+
 def set_gain(val):
     m = alsaaudio.Mixer('PCM')
     m.setvolume(int(val * 100))
@@ -17,7 +18,7 @@ def set_gain(val):
 def play_sample(fname):
     data, fs = sf.read(fname, dtype='float32')
     sd.play(data, fs, device='default')
-    status = sd.wait()
+    _ = sd.wait()
     # sd.default.samplerate = fs
     # python3 -m sounddevice
     # sd.default.device = 'digital output'

@@ -1,10 +1,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import numpy as np
-
+import numpy as np  # noqa: E402
 try:
-    from dotstar import Adafruit_DotStar
+    from dotstar import Adafruit_DotStar  # noqa: E402
 except ImportError:
     logger.info('unable to import Adafruit_DotStar')
 
@@ -25,7 +24,6 @@ class DotstarDisplay():
         g = np.copy(grid)
         g[:, :, 1:] = grid[:, :, 3:0:-1]
 
-
         # invert every other column for Biofeedback Cube Mark 1
         # which is laid out in Z-order
         g[:, 1::2, :] = np.copy(g[::-1, 1::2, :])
@@ -45,4 +43,4 @@ class DotstarDisplay():
         u8[0::4] = 0xff  # dotstar format is (0xff,r,g,b)
         _bytes = u8.tobytes()
 
-        self.strip.show(_bytes )
+        self.strip.show(_bytes)

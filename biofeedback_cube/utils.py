@@ -1,7 +1,6 @@
 import functools
 import logging
 import os
-import shlex
 
 import imageio
 import numpy as np
@@ -9,6 +8,7 @@ from scipy.ndimage.interpolation import zoom
 
 
 logger = logging.getLogger(__name__)
+
 
 def bytes_to_str(b1, b2):
     return '{:02x} {:02x}'.format(b1, b2)
@@ -26,6 +26,7 @@ def decimate(x):
     """ make x smaller by doing piecewise mean """
     return x
 
+
 @functools.lru_cache()
 def open_image(fname, scale=None):
     path = os.path.join(os.path.dirname(__file__), '../assets', fname)
@@ -34,6 +35,7 @@ def open_image(fname, scale=None):
         im = zoom(im, (scale, scale, 1))
 
     return im.astype(np.float64) / 255
+
 
 def shutdown():
     logger.critical("shutting down")
