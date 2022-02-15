@@ -57,7 +57,7 @@ def jc(grid, t):
 
 
 def circle(grid, t, color=(.7, .4, .2), weight=1.0):
-    radius = hydra.d * 0.2
+    radius = hydra.f * 0.2
 
     if hydra.fresh(t):
         y = 1-hydra.y
@@ -73,7 +73,7 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
 
 def tent(grid, t):
     """ similar to a circle but like a circus tent """
-    r = 0.03
+    r = 0.07 * hydra.f
 
     if hydra.fresh(t):
         y = 1-hydra.y

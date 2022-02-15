@@ -32,7 +32,7 @@ def palette_map(x):
     return palettes[k[int(x * len(palettes))]]
 
 def palette(grid, t):
-    palette = palette_map(hydra.d)
+    palette = palette_map(hydra.f)
 
     size = HEIGHT // len(palette)
 
