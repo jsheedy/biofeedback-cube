@@ -57,7 +57,7 @@ def jc(grid, t):
 
 
 def circle(grid, t, color=(.7, .4, .2), weight=1.0):
-    radius = 0.05
+    radius = hydra.d * 0.2
 
     if hydra.fresh(t):
         y = 1-hydra.y
@@ -71,28 +71,23 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
     grid[mask, :] += weight * np.array(color)
 
 
-def tent(grid, t, color=(.7, .2, .4), weight=1.0):
+def tent(grid, t):
     """ similar to a circle but like a circus tent """
-    r = 0.1
-    x = 1-hydra.x
-    y = 1-hydra.y
+    r = 0.03
+
+    if hydra.fresh(t):
+        y = 1-hydra.y
+        x = 1-hydra.x
+    else:
+        y = 0.25 + 0.5*sin(0.5*t)
+        x = 0.25 + 0.5*cos(0.501*t)
 
     tent = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
-    r, g, b = color
+    r, g, b = hydra.a, hydra.b, hydra.c
 
-    grid[:, :, 0] = weight * r * tent
-    grid[:, :, 1] = weight * g * tent
-    grid[:, :, 2] = weight * b * tent
-
-
-# def hydra_line(self, t):
-#     rgb = (hydra.a, hydra.b, hydra.c)
-#     x = hydra.x
-#     y = hydra.y
-#     pts = (
-#         0, 0, int(WIDTH*y), int(HEIGHT*x)
-#     )
-#     self.renderer.draw_line(pts, rgb)
+    grid[:, :, 0] = r * tent
+    grid[:, :, 1] = g * tent
+    grid[:, :, 2] = b * tent
 
 
 def plasma(grid, t):

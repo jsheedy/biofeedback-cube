@@ -15,3 +15,6 @@ class Modes(Enum):
     PLASMA2 = 10
     EARLY_FIRE = 11
     FIRE = 12
+    TENT = 13
+    PALETTE = 14
+
