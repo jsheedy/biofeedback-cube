@@ -3,6 +3,7 @@ import asyncio
 import importlib
 import logging
 from multiprocessing import Process, Queue
+import signal
 import sys
 import time
 import traceback
@@ -134,8 +135,14 @@ def process_main(rows, cols, reload):
     p2.join()
 
 
+def sigterm_handler(signum, frame):
+    logger.warning('caught SIGTERM')
+    hydra.shutdown = True
+
+
 def main():
     args = parse_args()
+    signal.signal(signal.SIGTERM, sigterm_handler)
     if args.verbose:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
