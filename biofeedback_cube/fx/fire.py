@@ -20,6 +20,6 @@ def fire(grid, t):
     fire_grid[0, :] = np.random.random((1, WIDTH))
     modulated_kernel = kernel / (3.5 + 2 * hydra.f)
     fire_grid = convolve2d(fire_grid, modulated_kernel, mode='same', boundary='wrap')
-    grid[:, :, 0] = hydra.a * fire_grid
-    grid[:, :, 1] = hydra.b * fire_grid
-    grid[:, :, 2] = hydra.c * fire_grid
+    grid[:, :, 0] += hydra.a * fire_grid
+    grid[:, :, 1] += hydra.b * fire_grid
+    grid[:, :, 2] += hydra.c * fire_grid

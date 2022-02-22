@@ -17,4 +17,4 @@ class Modes(Enum):
     FIRE = 12
     TENT = 13
     PALETTE = 14
-
+    LARSON = 15

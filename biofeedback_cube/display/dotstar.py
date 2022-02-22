@@ -9,9 +9,7 @@ except ImportError:
 
 
 class DotstarDisplay():
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+    def __init__(self, _width, _height):
         self.strip = Adafruit_DotStar()
         self.strip.begin()
 
@@ -36,8 +34,6 @@ class DotstarDisplay():
         arr = self.serialize_grid(grid)
         arr *= brightness
         gamma_corrected = np.clip(arr, 0, 1) ** gamma
-        # disable gamma correction
-        # gamma_corrected = arr
 
         u8 = (gamma_corrected * 255.0).astype(np.uint8)
         u8[0::4] = 0xff  # dotstar format is (0xff,r,g,b)

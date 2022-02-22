@@ -7,7 +7,9 @@ from biofeedback_cube.hydra import hydra
 from biofeedback_cube.modes import Modes
 from biofeedback_cube.fx import std
 from biofeedback_cube.fx.fire import fire
+from biofeedback_cube.fx.larson import larson
 from biofeedback_cube.fx.palette import palette
+from biofeedback_cube.fx.punyty import punyty
 from biofeedback_cube.fx.punyty import punyty
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,7 @@ MODE_MAP = {
     Modes.EARLY_FIRE: std.early_fire,
     Modes.FIRE: fire,
     Modes.PALETTE: palette,
+    Modes.LARSON: larson
 }
 
 
@@ -45,14 +48,11 @@ class Buffer():
     of a slider or joystick
     """
 
-    def __init__(self, rows, cols, size=None):
-        self.rows = rows
-        self.cols = cols
+    def __init__(self, height, width, size=None):
 
-        self.height = size or rows
-        self.width = size or rows  # Biofeedback Cube mark I is 68Hx8W
-
-        self.buffer = np.zeros(shape=(self.height, self.width, 4), dtype=np.float64)
+        self.height = height
+        self.width = width
+        self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float64)
 
     @property
     def grid(self):
@@ -89,6 +89,4 @@ class Buffer():
         # self.blur(hydra.i * 200)
 
     def get_grid(self):
-        slice_width = self.width // self.cols
-        s = slice(0, slice_width * self.cols, slice_width)
-        return self.buffer[:, s, :]
+        return self.buffer[:, :, :]

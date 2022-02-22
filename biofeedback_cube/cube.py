@@ -11,6 +11,7 @@ import traceback
 import uvloop
 
 from biofeedback_cube import buffer
+from biofeedback_cube import config
 from biofeedback_cube import display
 from biofeedback_cube import exceptions
 from biofeedback_cube import osc
@@ -26,10 +27,7 @@ t0 = time.time()
 
 queue = Queue()
 
-ROWS = 68
-COLS = 8
-
-buff = buffer.Buffer(ROWS, COLS)
+buff = buffer.Buffer(config.HEIGHT, config.WIDTH)
 
 
 def parse_args():
@@ -59,16 +57,14 @@ def main_loop(coros):
             sys.exit(-1)
 
 
-def render(rows, cols, reload=False):
-
+def render(reload=False):
     t = time.time() - t0
     try:
         if reload:
-            global buff
-            importlib.reload(buffer)
-            b2 = buffer.Buffer(rows, cols)
-            b2.locals = buff.locals
-            buff = b2
+            # global buff
+            # importlib.reload(buffer)
+            from biofeedback_cube.fx import larson
+            importlib.reload(larson)
         buff.update(t)
         return buff.get_grid()
 
@@ -81,12 +77,12 @@ def render(rows, cols, reload=False):
 
 
 @asyncio.coroutine
-def async_render(rows, cols, reload=False):
+def async_render(reload=False):
     while True:
         if hydra.shutdown:
             logger.warning('hydra shutdown, exiting render loop')
             break
-        grid = render(rows, cols, reload=reload)
+        grid = render(reload=reload)
         yield from asyncio.sleep(0.010)
         brightness = hydra.e
         display.draw(grid, brightness=brightness)
@@ -95,7 +91,7 @@ def async_render(rows, cols, reload=False):
 
 def process_render(rows, cols, reload=False):
     while True:
-        grid = render(rows, cols, reload=reload)
+        grid = render(reload=reload)
         queue.put(grid)
 
 
@@ -113,12 +109,10 @@ def persist_hydra():
         save_hydra()
 
 
-def async_main(rows, cols, args):
+def async_main(args):
     coros = (
-        async_render(rows, cols, reload=args.reload),
+        async_render(reload=args.reload),
         osc.server(args.host, args.port, hydra),
-        # slow
-        # persist_hydra(),
     )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
@@ -148,10 +142,10 @@ def main():
         logger.setLevel(logging.DEBUG)
         logger = logging.getLogger(__name__)
 
-    display.init(ROWS, COLS, sdl=args.simulator)
+    display.init(config.HEIGHT, config.WIDTH, sdl=args.simulator)
 
     # process_main(ROWS, COLS, args.reload)
-    async_main(ROWS, COLS, args)
+    async_main(args)
 
 
 if __name__ == '__main__':

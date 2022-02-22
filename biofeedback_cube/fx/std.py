@@ -67,7 +67,7 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
         x = 0.25 + 0.5*cos(0.501*t)
 
     color = (hydra.a, hydra.b, hydra.c)
-    mask = ((xx-x)**2 + (yy - y)**2) < radius
+    mask = ((xx - x)**2 + (yy - y)**2) < radius
     grid[mask, :] += weight * np.array(color)
 
 
