@@ -6,6 +6,8 @@ import imageio
 import numpy as np
 from scipy.ndimage.interpolation import zoom
 
+from biofeedback_cube import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,8 @@ def open_image(fname, scale=None):
     path = os.path.join(os.path.dirname(__file__), '../assets', fname)
     im = imageio.imread(path)
     if scale:
-        im = zoom(im, (scale, scale, 1))
+        aspect = config.WIDTH / config.HEIGHT
+        im = zoom(im, (scale, scale * aspect * config.ASPECT, 1))
 
     return im.astype(np.float64) / 255
 
