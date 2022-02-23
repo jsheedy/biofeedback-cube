@@ -46,10 +46,13 @@ def image(grid, t):
     im = rgba[:, :, :3]
     im = im[::-1, ::-1, :]
 
+    scale = hydra.g
     h, w = im.shape[:2]
+    h = scale*h
+    w = scale*w
 
-    x_i = np.linspace(0, w-1, WIDTH, dtype=np.int32)
-    y_i = np.linspace(0, h-1, HEIGHT, dtype=np.int32)
+    x_i = np.linspace(w // 2 - (w//2) * (1-hydra.x), scale * (w-1), WIDTH, dtype=np.int32)
+    y_i = np.linspace(h // 2 - (h//2) * (1-hydra.y), scale * (h-1), HEIGHT, dtype=np.int32)
     xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
     grid[:, :, :] = im[yy_i, xx_i, :]
