@@ -31,7 +31,7 @@ def open_image(path):
     im = imageio.imread(path)
     h, w = im.shape[:2]
     s = 100 / max((h, w))
-    im = zoom(im, (s, s, 1))
+    # im = zoom(im, (s, s, 1))
     return im.astype(np.float64) / 255
 
 
@@ -46,16 +46,13 @@ def image(grid, t):
     im = rgba[:, :, :3]
     im = im[::-1, ::-1, :]
 
-    grid[:, :] = im[:HEIGHT, :WIDTH, :]
+    h, w = im.shape[:2]
 
-    # h, w = im.shape[:2]
+    x_i = np.linspace(0, w-1, WIDTH, dtype=np.int32)
+    y_i = np.linspace(0, h-1, HEIGHT, dtype=np.int32)
+    xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
-    # x_i = np.take(iix, range(x0, x0+w), mode='wrap')
-    # y_i = np.take(iiy, range(y0, y0+h), mode='wrap')
-
-    # xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
-
-    # grid[yy_i, xx_i, :] = im
+    grid[:, :, :] = im[yy_i, xx_i, :]
 
 
 open_images()
