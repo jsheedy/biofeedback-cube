@@ -7,6 +7,7 @@ from biofeedback_cube.hydra import hydra
 from biofeedback_cube.modes import Modes
 from biofeedback_cube.fx import std
 from biofeedback_cube.fx.fire import fire
+from biofeedback_cube.fx.image import image
 from biofeedback_cube.fx.larson import larson
 from biofeedback_cube.fx.palette import palette
 from biofeedback_cube.fx.punyty import punyty
@@ -15,13 +16,10 @@ from biofeedback_cube.fx.punyty import punyty
 logger = logging.getLogger(__name__)
 
 MODE_MAP = {
-    Modes.MARIO: std.mario,
+    Modes.IMAGE: image,
     Modes.CIRCLE: std.circle,
     Modes.TENT: std.tent,
     Modes.TEST_GRID: std.test_grid,
-    Modes.TV_TEST: std.tv_test,
-    Modes.HEART: std.heart,
-    Modes.JC: std.jc,
     Modes.STARFIELD: std.starfield,
     Modes.PUNYTY: punyty,
     Modes.PLASMA: std.plasma,
