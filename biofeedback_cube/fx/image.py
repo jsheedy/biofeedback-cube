@@ -30,6 +30,7 @@ def open_image(path):
 
 def image(grid, t):
 
+    r, g, b = hydra.a, hydra.b, hydra.c
     idx = int(hydra.f * (len(images)-1))
     rgba = images[idx]
 
@@ -65,7 +66,7 @@ def image(grid, t):
     mask = (xx_i < 0) | (xx_i > w) | (yy_i < 0) | (yy_i > h)
     crop[mask] = 0
 
-    grid[:, :, :] += crop
+    grid[:, :, :] += crop * (r, g, b)
 
 
 open_images()

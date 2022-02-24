@@ -68,8 +68,8 @@ class SDLDisplay():
             elif event.type == sdl2.SDL_MOUSEMOTION:
                 x, y = ctypes.c_int(0), ctypes.c_int(0)  # Create two ctypes values
                 _ = sdl2.mouse.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
-                y_normalized = y.value / self.height
-                x_normalized = x.value / self.width
+                y_normalized = (y.value + 1) / self.height
+                x_normalized = (x.value + 1) / self.width
 
                 for key in self.keys_down:
                     setattr(hydra, chr(key), y_normalized)
