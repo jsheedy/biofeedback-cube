@@ -18,7 +18,6 @@ def open_images():
     path = Path(os.path.dirname(__file__)) / Path('../../assets')
     for p in path.glob('*.png'):
         logger.info(f'opening {p}')
-        print(f'opening {p}')
         images.append(open_image(p))
 
 

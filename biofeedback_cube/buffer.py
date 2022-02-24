@@ -4,6 +4,7 @@ import numpy as np
 from scipy.ndimage import filters, rotate
 
 from biofeedback_cube.fx import std
+from biofeedback_cube.fx.cat_jam import jam
 from biofeedback_cube.fx.fire import fire
 from biofeedback_cube.fx.image import image
 from biofeedback_cube.fx.larson import larson
@@ -28,7 +29,8 @@ MODE_MAP = {
     Modes.EARLY_FIRE: std.early_fire,
     Modes.FIRE: fire,
     Modes.PALETTE: palette,
-    Modes.LARSON: larson
+    Modes.LARSON: larson,
+    Modes.CATJAM: jam
 }
 
 

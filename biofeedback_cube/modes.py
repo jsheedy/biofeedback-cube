@@ -15,3 +15,4 @@ class Modes(Enum):
     TENT = 13
     PALETTE = 14
     LARSON = 15
+    CATJAM = 16
