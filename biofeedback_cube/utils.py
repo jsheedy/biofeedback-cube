@@ -22,7 +22,7 @@ def cos(x):
 def index_dict(d: dict, x: float):
     """ return a value from d for range x 0-1 the best range"""
     keys = list(d.keys())
-    index = int(x * len(keys))
+    index = int(x * (len(keys) - 1))
     return d[keys[index]]
 
 
