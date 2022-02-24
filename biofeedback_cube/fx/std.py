@@ -5,13 +5,17 @@ import numpy as np
 
 from biofeedback_cube.config import HEIGHT, WIDTH
 from biofeedback_cube.hydra import hydra
-from biofeedback_cube.utils import open_image, sin, cos
-
+from biofeedback_cube.utils import sin, cos
 
 yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
-iix = np.arange(WIDTH, dtype=np.int32)
-iiy = np.arange(HEIGHT, dtype=np.int32)
 
+operators = (
+    np.add,
+    np.multiply,
+    np.divide,
+    np.power,
+    np.subtract,
+)
 
 def early_fire(grid, t):
     f = 10
@@ -21,44 +25,8 @@ def early_fire(grid, t):
     grid[row::4, :, 2] = 0.0
 
 
-def image(grid, t, fname, scale=1.0):
-
-    x0 = int(-40 + 80 * (1-hydra.x))
-    y0 = int(-40 + 80 * (1-hydra.y))
-
-    rgba = open_image(fname, scale=scale)
-    im = rgba[:, :, :3]
-    im = im[::-1, ::-1, :]
-
-    h, w = im.shape[:2]
-
-    x_i = np.take(iix, range(x0, x0+w), mode='wrap')
-    y_i = np.take(iiy, range(y0, y0+h), mode='wrap')
-
-    xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
-
-    grid[yy_i, xx_i, :] = im
-
-
-def mario(grid, t):
-    image(grid, t, 'mario.png', scale=0.28)
-
-
-def tv_test(grid, t):
-    image(grid, t, 'tv-test.png', scale=0.08)
-
-
-def heart(grid, t):
-    image(grid, t, 'heart.png', scale=0.12)
-
-
-def jc(grid, t):
-    image(grid, t, 'j+c.png', scale=0.3)
-
-
 def circle(grid, t, color=(.7, .4, .2), weight=1.0):
     radius = hydra.f * 0.2
-
     if hydra.fresh(t):
         y = 1-hydra.y
         x = 1-hydra.x
@@ -67,17 +35,20 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
         x = 0.25 + 0.5*cos(0.501*t)
 
     color = (hydra.a, hydra.b, hydra.c)
-    mask = ((xx-x)**2 + (yy - y)**2) < radius
-    grid[mask, :] += weight * np.array(color)
+    mask = ((xx - x)**2 + (yy - y)**2) < radius
+
+    # op = operators[int(hydra.i * (len(operators)-1))]
+    # op(grid[mask, :], weight * np.array(color))
+    grid[mask, :] = weight * np.array(color)
 
 
-def tent(grid, t):
+def tent(grid, t, operator=np.add):
     """ similar to a circle but like a circus tent """
-    r = 0.07 * hydra.f
+    r = 5 * hydra.f
 
     if hydra.fresh(t):
-        y = 1-hydra.y
-        x = 1-hydra.x
+        y = 1 - hydra.y
+        x = 1 - hydra.x
     else:
         y = 0.25 + 0.5*sin(0.5*t)
         x = 0.25 + 0.5*cos(0.501*t)

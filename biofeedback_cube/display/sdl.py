@@ -23,28 +23,23 @@ class SDLDisplay():
     mode_iter = itertools.cycle(Modes)
 
     def __init__(self, rows, cols, width=600, height=600):
-        self.cols = cols
-        self.rows = rows
         self.width = width
         self.height = height
+        yc = np.linspace(0, rows, height, endpoint=False, dtype=np.int32)
+        xc = np.linspace(0, cols, width, endpoint=False, dtype=np.int32)
+        self.yy, self.xx = np.meshgrid(yc, xc)
 
         sdl2.ext.init()
-        self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(self.width, self.height))
+        self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(width, height))
         self.window.show()
         surface = self.window.get_surface()
         self.pixels = sdl2.ext.pixels2d(surface)
         self.renderer = sdl2.ext.Renderer(surface, flags=sdl2.SDL_RENDERER_ACCELERATED)
-        # renderer.blendmode = sdl2.SDL_BLENDMODE_MOD
-        self.pixels[:, :] = 0xffffffff
         self.window.refresh()
+
         self.state = SimpleNamespace(
             running=True,
-            paused=False,
             speed=0.000005,
-            joystick=SimpleNamespace(
-                x=0,
-                y=0
-            )
         )
 
         self.keys_down = set()
@@ -52,24 +47,19 @@ class SDLDisplay():
     def handle_events(self):
         events = sdl2.ext.get_events()
         for event in events:
-            logger.debug(event.key.keysym.sym)
-            # if event.type == sdl2.SDL_PRESSED:
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
                     hydra.mode = next(self.mode_iter)
+                    logger.info(f'switched to mode {hydra.mode}')
                 elif event.key.keysym.sym == 61:  # +
-                    if self.state.speed < 0.001:
-                        self.state.speed += 0.0000025
+                    pass
                 elif event.key.keysym.sym == 45:  # -
-                    self.state.speed -= 0.0000025
-                    if self.state.speed < 0:
-                        self.state.speed = 0
+                    pass
                 elif event.key.keysym.sym == 113:  # q
                     self.state.running = False
 
                 self.keys_down.clear()
                 self.keys_down.add(event.key.keysym.sym)
-                logging.debug(self.keys_down)
 
             # elif event.type == sdl2.SDL_RELEASED:
             elif event.type == sdl2.SDL_KEYUP:
@@ -94,7 +84,7 @@ class SDLDisplay():
         self.handle_events()
 
         if not self.state.running:
-            raise exceptions.UserQuit('user quit')
+            raise exceptions.UserQuit
 
         rgb = (grid * brightness * 255).astype(np.uint32)
         r, g, b = rgb[::-1, ::-1, 1], rgb[::-1, ::-1, 2], rgb[::-1, ::-1, 3]
@@ -102,8 +92,5 @@ class SDLDisplay():
         # convert to SDL color 32bit BGRA format
         x = 0xff000000 | (r << 16) | (g << 8) | b
 
-        yc = np.linspace(0, self.rows, self.height, endpoint=False, dtype=np.int32)
-        xc = np.linspace(0, self.cols, self.width, endpoint=False, dtype=np.int32)
-        yy, xx = np.meshgrid(yc, xc)
-        self.pixels[:, :] = x[yy, xx]
+        self.pixels[:, :] = x[self.yy, self.xx]
         self.window.refresh()

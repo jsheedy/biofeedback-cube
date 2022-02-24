@@ -3,6 +3,8 @@ from biofeedback_cube.hydra import hydra
 
 import numpy as np
 
+from ..utils import index_dict
+
 
 palettes = {
     'rgb': np.array([
@@ -37,16 +39,8 @@ palettes = {
 }
 
 
-def palette_map(x):
-    """ return a palette for range d 0-1 the best range"""
-    keys = list(palettes.keys())
-    index = int(x * (len(keys)-1))
-    return palettes[keys[index]]
-
-
-
 def palette(grid, t):
-    palette = palette_map(hydra.f)
+    palette = index_dict(palettes, hydra.f)
 
     size = HEIGHT // len(palette)
 
