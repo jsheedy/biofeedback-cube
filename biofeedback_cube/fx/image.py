@@ -3,18 +3,13 @@ import os
 from pathlib import Path
 
 import imageio
-from scipy.ndimage import zoom
 import numpy as np
 
 from ..config import WIDTH, HEIGHT
 from ..hydra import hydra
-from ..utils import index_dict
+from ..utils import sin
 
 logger = logging.getLogger(__name__)
-
-
-iix = np.arange(WIDTH, dtype=np.int32)
-iiy = np.arange(HEIGHT, dtype=np.int32)
 
 images = []
 
@@ -30,15 +25,10 @@ def open_images():
 def open_image(path):
     im = imageio.imread(path)
     h, w = im.shape[:2]
-    s = 100 / max((h, w))
-    # im = zoom(im, (s, s, 1))
     return im.astype(np.float64) / 255
 
 
 def image(grid, t):
-
-    # x0 = int(-40 + 80 * (1-hydra.x))
-    # y0 = int(-40 + 80 * (1-hydra.y))
 
     idx = np.clip(0, len(images), int(hydra.f * len(images)))
     rgba = images[idx]
@@ -46,16 +36,36 @@ def image(grid, t):
     im = rgba[:, :, :3]
     im = im[::-1, ::-1, :]
 
-    scale = hydra.g
     h, w = im.shape[:2]
-    h = scale*h
-    w = scale*w
 
-    x_i = np.linspace(w // 2 - (w//2) * (1-hydra.x), scale * (w-1), WIDTH, dtype=np.int32)
-    y_i = np.linspace(h // 2 - (h//2) * (1-hydra.y), scale * (h-1), HEIGHT, dtype=np.int32)
+    x = 2 * hydra.x - 1
+    y = 2 * hydra.y - 1
+
+    if hydra.fresh(t) or hydra.g > .05:
+        scale = hydra.g * 2
+    else:
+        scale = .95 + .2 * sin(3 * t)
+
+    # crop out a region of the image, in the size of the target grid repeating
+    # or dropping pixels where necessary.
+
+    x1 = round(w * x + (w - scale * w) / 2)
+    x2 = round(x1 + w * scale)
+
+    y1 = round(h * y + (h - scale * h) / 2)
+    y2 = round(y1 + h * scale)
+
+    x_i = np.linspace(x1, x2, WIDTH, dtype=np.int32)
+    y_i = np.linspace(y1, y2, HEIGHT, dtype=np.int32)
     xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
-    grid[:, :, :] = im[yy_i, xx_i, :]
+    crop = np.take(np.take(im, y_i, axis=0, mode='clip'), x_i, axis=1, mode='clip')
+
+    # set mask for areas outside image
+    mask = (xx_i < 0) | (xx_i > w) | (yy_i < 0) | (yy_i > h)
+    crop[mask] = 0
+
+    grid[:, :, :] += crop
 
 
 open_images()

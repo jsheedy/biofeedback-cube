@@ -35,11 +35,11 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
 
 def tent(grid, t):
     """ similar to a circle but like a circus tent """
-    r = 0.07 * hydra.f
+    r = 5 * hydra.f
 
     if hydra.fresh(t):
-        y = 1-hydra.y
-        x = 1-hydra.x
+        y = 1 - hydra.y
+        x = 1 - hydra.x
     else:
         y = 0.25 + 0.5*sin(0.5*t)
         x = 0.25 + 0.5*cos(0.501*t)

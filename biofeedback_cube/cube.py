@@ -66,7 +66,7 @@ def render(reload=False):
             from biofeedback_cube.fx import larson
             importlib.reload(larson)
         buff.update(t)
-        return buff.get_grid()
+        return buff.buffer
 
     except exceptions.UserQuit:
         logger.exception('user quit')
@@ -131,7 +131,8 @@ def process_main(rows, cols, reload):
 
 def sigterm_handler(signum, frame):
     logger.warning('caught SIGTERM')
-    hydra.shutdown = True
+    save_hydra()
+    sys.exit(0)
 
 
 def main():

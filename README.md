@@ -1,6 +1,8 @@
 # biofeedback-cube
 This project began as an immersive cube of side 4 feet in which one would sit while hooked up to a heartrate monitor. 5 walls of the cubes were to be LED panels while the base was constructed of wood and contained a 12" JBL subwoofer and fullrange speakers. The heartbeat signal would modulate all light and sound reaching the user providing an immersive biofeedback loop.
 
+![cube gif](cube.gif)
+
 [OSC](https://www.wikiwand.com/en/Open_Sound_Control) is used as a communications protocol between subsystems such as the heartrate monitor, [TouchOSC](https://hexler.net/touchosc), or Ableton Live.
 
 I constructed 3 panels and the initial project has pivoted. Now the main usage is driving one of them which is mounted on a wall in a wood frame, controllable by TouchOSC and Ableton.
@@ -37,7 +39,7 @@ Set any environment variables in /etc/cube_environment.
 Logs at `sudo journalctl -u cube `
 
 ## Power
-once pixels got enough voltage, rpi started displaying lightning bolt 
+once pixels got enough voltage, rpi started displaying lightning bolt
 for an undervoltage condition and crashing.
 
 Disable USB buspower:
