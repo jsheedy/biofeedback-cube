@@ -44,24 +44,18 @@ class Hydra():
     shutdown: bool = False
     last_update: float = 0
 
-    dirty = False
-
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        if name not in ('last_update', 'dirty'):
-            self.dirty = True
+        if name not in ('last_update',):
             self.last_update = time.time() - t0
 
     def fresh(self, t):
         """ return boolean whether hydra has been updated recently """
         dt = t - self.last_update
-        return dt < .2
+        return dt < .10
 
 
 def save_hydra():
-    if not hydra.dirty:
-        return
-    hydra.dirty = False
     hydra.shutdown = False
     logger.info(f'dumping hydra state to {HYDRA_STATE_FILE}')
     try:
