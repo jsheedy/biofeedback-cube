@@ -19,10 +19,15 @@ def open_images():
     logger.info(f'opening {path}')
     with imageio.read(path) as f:
         for im in f.iter_data():
-            images.append(im.astype(np.float64) / 255)
+            flipped_im = im[::-1, ::-1, :]
+            images.append(flipped_im.astype(np.float64) / 255)
         meta['length'] = f.get_length()
         meta['duration'] = f.get_meta_data()['duration']
         meta['total_time'] = (meta['length'] * meta['duration']) / 1000
+
+    meta['h'], meta['w'] = im.shape[:2]
+    meta['x_i'] = np.linspace(0, meta['w'], WIDTH, dtype=np.int32)
+    meta['y_i'] = np.linspace(0, meta['h'], HEIGHT, dtype=np.int32)
 
 
 def jam(grid, t):
@@ -31,17 +36,13 @@ def jam(grid, t):
     idx = int(pos * length)
     rgba = images[idx]
 
-    h, w = rgba.shape[:2]
-
-    x_i = np.linspace(0, w, WIDTH, dtype=np.int32)
-    y_i = np.linspace(0, h, HEIGHT, dtype=np.int32)
-
-    crop = np.take(np.take(rgba, y_i, axis=0, mode='clip'), x_i, axis=1, mode='clip')
-    crop = crop[::-1, ::-1, :]
+    crop = np.take(np.take(rgba, meta['y_i'], axis=0, mode='clip'), meta['x_i'], axis=1, mode='clip')
     im = crop[:, :, :3]
     alpha = crop[:, :, 3:]
 
-    grid[:, :, :] += alpha * im
+    mask = np.squeeze(alpha > 0)
+
+    grid[mask, :] = im[mask]
 
 
 open_images()
