@@ -75,16 +75,26 @@ def hydra_accxyz_handler(_addr, args, x, y, z, **kwargs):
 
 def mode_handler(addr, args, value, **kwargs):
     hydra = args[0]
-    if int(value) == 1:
-        mode_l = addr.split('/')
-        mode_row = int(mode_l[-2]) - 1
-        mode_col = int(mode_l[-1]) - 1
-        mode = mode_col * 5 + mode_row
-        logger.info(f'setting hydra mode {mode}')
-        try:
-            hydra.mode = Modes(mode)
-        except ValueError:
-            logger.error(f'unable to set hydra mode {mode}')
+
+    mode_l = addr.split('/')
+    mode_row = int(mode_l[-2]) - 1
+    mode_col = int(mode_l[-1]) - 1
+    mode_index = mode_col * 5 + mode_row
+
+    try:
+        if mode_index == 24:
+            hydra.modes.clear()
+        else:
+            mode = Modes(mode_index)
+            if mode not in hydra.modes:
+                logger.info(f'adding hydra mode {mode}')
+                hydra.modes.add(mode)
+            else:
+                logger.info(f'removing hydra mode {mode}')
+                hydra.modes.remove(mode)
+
+    except ValueError:
+        logger.error(f'unable to set hydra mode {mode}')
 
 
 def shutdown_handler(addr, args, value, **kwargs):

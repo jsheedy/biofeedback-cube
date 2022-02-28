@@ -62,10 +62,9 @@ def image(grid, t):
     crop = np.take(np.take(im, y_i, axis=0, mode='clip'), x_i, axis=1, mode='clip')
 
     # set mask for areas outside image
-    mask = (xx_i < 0) | (xx_i > w) | (yy_i < 0) | (yy_i > h)
-    crop[mask] = 0
+    mask = np.invert(np.squeeze((xx_i < 0) | (xx_i > w) | (yy_i < 0) | (yy_i > h)))
+    grid[mask] = (crop * (r, g, b))[mask]
 
-    grid[:, :, :] += crop * (r, g, b)
 
 
 open_images()
