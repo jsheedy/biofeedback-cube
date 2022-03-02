@@ -12,7 +12,8 @@ class Modes(Enum):
     STARFIELD = 7
     PUNYTY = 8
     PLASMA2 = 9
-    STROBE = 10
+    PLASMA3 = 10
     EARLY_FIRE = 11
     FIRE = 12
     TENT = 13
+    STROBE = 14

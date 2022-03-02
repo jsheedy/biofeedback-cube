@@ -18,6 +18,7 @@ operators = (
     np.subtract,
 )
 
+
 def early_fire(grid, t):
     f = 10
     row = sin(f*t) > 0.5 and 1 or 0
@@ -38,8 +39,6 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
     color = (hydra.a, hydra.b, hydra.c)
     mask = ((xx - x)**2 + (yy - y)**2) < radius
 
-    # op = operators[int(hydra.i * (len(operators)-1))]
-    # op(grid[mask, :], weight * np.array(color))
     grid[mask, :] = weight * np.array(color)
 
 
@@ -48,33 +47,19 @@ def tent(grid, t, operator=np.add):
     r = 5 * hydra.f
     f = 10.0 * hydra.g
 
-    # if hydra.fresh(t):
-    #     y = 1 - hydra.y
-    #     x = 1 - hydra.x
-    # else:
     y = 0.5
     x = (sawtooth(f*t, width=0.5) + 1) / 2
 
     tent = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
+    # mask = tent > 0
     r, g, b = hydra.a, hydra.b, hydra.c
 
     grid[:, :, 0] = r * tent
     grid[:, :, 1] = g * tent
     grid[:, :, 2] = b * tent
-
-
-def plasma(grid, t):
-    tau = t * hydra.f * 10
-    f = .01 + hydra.g * 10
-    field = (
-        np.sin(2 * np.pi * f * yy + .25*tau)
-        + np.sin(2 * np.pi * f * xx + .6*tau)
-        + np.sin(10 * xx * f * yy + .41*tau)
-        + np.sin(10 * xx**2 * f * yy**2 + .34*tau)
-    )
-    grid[:, :, 0] = hydra.a * sin(field)
-    grid[:, :, 1] = hydra.b * sin(1.2*field + tau)
-    grid[:, :, 2] = hydra.c * sin(0.2*field + 2*tau)
+    # grid[mask, 0] = r * tent[mask]
+    # grid[mask, 1] = g * tent[mask]
+    # grid[mask, 2] = b * tent[mask]
 
 
 def cmap(x):
@@ -93,6 +78,20 @@ def cmap(x):
 
 def clear(grid, rgb):
     grid[:] = rgb
+
+
+def plasma(grid, t):
+    tau = t * hydra.f * 10
+    f = .01 + hydra.g * 10
+    field = (
+        np.sin(2 * np.pi * f * yy + .25*tau)
+        + np.sin(2 * np.pi * f * xx + .6*tau)
+        + np.sin(10 * xx * f * yy + .41*tau)
+        + np.sin(10 * xx**2 * f * yy**2 + .34*tau)
+    )
+    grid[:, :, 0] = hydra.a * sin(field)
+    grid[:, :, 1] = hydra.b * sin(1.2*field + tau)
+    grid[:, :, 2] = hydra.c * sin(0.2*field + 2*tau)
 
 
 def plasma2(grid, t):

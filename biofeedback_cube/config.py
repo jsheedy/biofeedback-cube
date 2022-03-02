@@ -1,5 +1,3 @@
-import os
-
 HEIGHT = 68
 WIDTH = 8
 # aspect ratio of device is

@@ -9,7 +9,7 @@ from biofeedback_cube.fx.fire import fire
 from biofeedback_cube.fx.image import image
 from biofeedback_cube.fx.larson import larson
 from biofeedback_cube.fx.palette import palette
-from biofeedback_cube.fx.punyty import punyty
+from biofeedback_cube.fx.plasma3 import plasma3
 from biofeedback_cube.fx.punyty import punyty
 from biofeedback_cube.hydra import hydra
 from biofeedback_cube.modes import Modes
@@ -25,6 +25,7 @@ MODE_MAP = {
     Modes.PUNYTY: punyty,
     Modes.PLASMA: std.plasma,
     Modes.PLASMA2: std.plasma2,
+    Modes.PLASMA3: plasma3,
     Modes.STROBE: std.strobe,
     Modes.EARLY_FIRE: std.early_fire,
     Modes.FIRE: fire,

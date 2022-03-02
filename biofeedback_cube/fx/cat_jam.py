@@ -6,7 +6,6 @@ import imageio
 import numpy as np
 
 from ..config import WIDTH, HEIGHT
-from ..hydra import hydra
 
 logger = logging.getLogger(__name__)
 

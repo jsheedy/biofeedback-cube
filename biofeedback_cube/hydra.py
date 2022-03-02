@@ -65,6 +65,7 @@ def save_hydra():
     except Exception:
         logger.exception(f'unable to save {HYDRA_STATE_FILE}')
 
+
 try:
     with open(HYDRA_STATE_FILE, 'rb') as f:
         hydra = pickle.load(f)

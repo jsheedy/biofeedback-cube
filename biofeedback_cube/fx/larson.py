@@ -2,7 +2,6 @@ from scipy.signal import sawtooth
 
 from biofeedback_cube.config import HEIGHT, WIDTH
 from ..hydra import hydra
-from .std import yy, xx
 
 
 def larson(grid, t):
