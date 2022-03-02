@@ -49,7 +49,7 @@ class Buffer():
 
         self.height = height
         self.width = width
-        self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float64)
+        self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float32)
 
     @property
     def grid(self):

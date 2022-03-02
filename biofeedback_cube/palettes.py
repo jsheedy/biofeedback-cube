@@ -26,13 +26,13 @@ palettes = {
         [255, 0, 0],
         [0, 255, 0],
         [0, 0, 255],
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 
     'secondary': Palette(np.array([
         [255, 255, 0],
         [255, 0, 255],
         [0, 255, 255],
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 
     'geology': Palette(np.array([
         [181, 210, 224],
@@ -42,7 +42,7 @@ palettes = {
         [131, 87, 39],
         [56, 51, 51],
         [103, 128, 130]
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 
     'jbl': Palette(np.array([
         [149, 175, 240],
@@ -50,7 +50,7 @@ palettes = {
         [107, 95, 157],
         [168, 178, 107],
         [80, 94, 42],
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 
     # see https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
     'plasma': Palette(np.array([
@@ -60,7 +60,7 @@ palettes = {
         [160, 60, 150],
         [91, 39, 163],
         [23, 28, 132],
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 
     'viridis': Palette(np.array([
         [246, 230, 66],
@@ -68,7 +68,7 @@ palettes = {
         [86, 144, 139],
         [67, 73, 133],
         [61, 21, 83],
-    ], dtype=np.float64) / 255),
+    ], dtype=np.float32) / 255),
 }
 
 

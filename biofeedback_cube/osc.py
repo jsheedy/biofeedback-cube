@@ -88,10 +88,10 @@ def mode_handler(addr, args, value, **kwargs):
             mode = Modes(mode_index)
             if mode not in hydra.modes:
                 logger.info(f'adding hydra mode {mode}')
-                hydra.modes.add(mode)
+                hydra.modes[mode] = True
             else:
                 logger.info(f'removing hydra mode {mode}')
-                hydra.modes.remove(mode)
+                del hydra.modes[mode]
 
     except ValueError:
         logger.error(f'unable to set hydra mode {mode}')

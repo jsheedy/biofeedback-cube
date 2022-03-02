@@ -50,7 +50,7 @@ class SDLDisplay():
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
                     mode = next(self.mode_iter)
-                    hydra.modes = set([mode])
+                    hydra.modes = {mode: True}
                     logger.info(f'switched to mode {hydra.modes}')
                 elif event.key.keysym.sym == 61:  # +
                     pass
