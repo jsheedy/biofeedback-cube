@@ -24,7 +24,7 @@ def open_images():
 def open_image(path):
     im = imageio.imread(path)
     h, w = im.shape[:2]
-    return im.astype(np.float64) / 255
+    return im[::-1, ::-1, :].astype(np.float64) / 255
 
 
 def image(grid, t):
@@ -33,10 +33,7 @@ def image(grid, t):
     idx = int(hydra.f * (len(images)-1))
     rgba = images[idx]
 
-    im = rgba[:, :, :3]
-    im = im[::-1, ::-1, :]
-
-    h, w = im.shape[:2]
+    h, w = rgba.shape[:2]
 
     x = 2 * hydra.x - 1
     y = 2 * hydra.y - 1
@@ -45,9 +42,6 @@ def image(grid, t):
         scale = hydra.g * 2
     else:
         scale = .95 + .2 * sin(3 * t)
-
-    # crop out a region of the image, in the size of the target grid repeating
-    # or dropping pixels where necessary.
 
     x1 = round(w * x + (w - scale * w) / 2)
     x2 = round(x1 + w * scale)
@@ -59,12 +53,17 @@ def image(grid, t):
     y_i = np.linspace(y1, y2, HEIGHT, dtype=np.int32)
     xx_i, yy_i = np.meshgrid(x_i, y_i, sparse=True)
 
-    crop = np.take(np.take(im, y_i, axis=0, mode='clip'), x_i, axis=1, mode='clip')
+    crop = np.take(np.take(rgba, y_i, axis=0, mode='clip'), x_i, axis=1, mode='clip')
+
+    im = crop[:, :, :3]
+    alpha = crop[:, :, 3]
+    alpha_mask = alpha > 0
 
     # set mask for areas outside image
-    mask = np.invert(np.squeeze((xx_i < 0) | (xx_i > w) | (yy_i < 0) | (yy_i > h)))
-    grid[mask] = (crop * (r, g, b))[mask]
+    conditions = (xx_i >= 0) & (xx_i < w) & (yy_i >= 0) & (yy_i < h)
+    mask = np.squeeze(conditions) & alpha_mask
 
+    grid[mask] = (im * (r, g, b))[mask]
 
 
 open_images()
