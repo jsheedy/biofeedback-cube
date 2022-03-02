@@ -12,5 +12,5 @@ def palette(grid, t):
 
     size = HEIGHT // len(palette)
 
-    for i, color in enumerate(palette):
-        grid[i*size:(i+1)*size, :, :] = color
+    for i, color in enumerate(palette.palette):
+        grid[i*size:(i+1)*size, :, :] = color / 255
