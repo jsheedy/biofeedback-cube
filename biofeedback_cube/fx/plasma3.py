@@ -11,22 +11,15 @@ yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
 def plasma3(grid, t):
     palette = index_dict(palettes, hydra.a)
 
-    tau = t * hydra.x
-    f1 = .2 + hydra.y * 5
+    tau = t * hydra.a
     f2 = .2 + hydra.b * 5
     f3 = .2 + hydra.c * 5
-    f4 = .2 + hydra.f * 5
-    f5 = .2 + hydra.g * 5
+    f1 = .2 + hydra.d * 5
 
     field = sin(
-        np.sin(2 * np.pi * f1 * yy + .25 * tau)
-        + np.sin(2 * np.pi * f2 * xx + .6 * tau)
-        + np.sin(10 * xx * f3 * yy + .41 * tau)
-        + np.sin(10 * xx**2 * f4 * yy**2 + .34 * tau)
-        + np.sin(10 * xx**2 * f5 * yy**2 + .34 * tau)
+        hydra.x * np.sin(2 * np.pi * f1 * yy + .25 * tau)
+        + hydra.y * np.sin(2 * np.pi * f2 * xx + .6 * tau)
+        + hydra.e * np.sin(10 * xx * f3 * yy + .41 * tau)
     )
 
-    r, g, b = cmap(palette, field)
-    grid[:, :, 0] = r
-    grid[:, :, 1] = g
-    grid[:, :, 2] = b
+    grid[:, :] = cmap(palette, field)
