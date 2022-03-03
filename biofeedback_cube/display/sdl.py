@@ -22,7 +22,7 @@ except ImportError:
 class SDLDisplay():
     mode_iter = itertools.cycle(Modes)
 
-    def __init__(self, rows, cols, width=600, height=600):
+    def __init__(self, rows, cols, width=512, height=512):
         self.width = width
         self.height = height
         yc = np.linspace(0, rows, height, endpoint=False, dtype=np.int32)
