@@ -23,8 +23,7 @@ def open_images():
 
 def open_image(path):
     im = imageio.imread(path)
-    h, w = im.shape[:2]
-    return im[::-1, ::-1, :].astype(np.float64) / 255
+    return im[::-1, ::-1, :].astype(np.float32) / 255
 
 
 def image(grid, t):

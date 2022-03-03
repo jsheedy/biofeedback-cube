@@ -22,7 +22,7 @@ except ImportError:
 class SDLDisplay():
     mode_iter = itertools.cycle(Modes)
 
-    def __init__(self, rows, cols, width=600, height=600):
+    def __init__(self, rows, cols, width=512, height=512):
         self.width = width
         self.height = height
         yc = np.linspace(0, rows, height, endpoint=False, dtype=np.int32)
@@ -50,7 +50,7 @@ class SDLDisplay():
             if event.type == sdl2.SDL_KEYDOWN:
                 if event.key.keysym.sym == 32:  # space
                     mode = next(self.mode_iter)
-                    hydra.modes = set([mode])
+                    hydra.modes = {mode: True}
                     logger.info(f'switched to mode {hydra.modes}')
                 elif event.key.keysym.sym == 61:  # +
                     pass

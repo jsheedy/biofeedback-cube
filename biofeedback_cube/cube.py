@@ -69,7 +69,8 @@ def render(reload=False):
         return buff.buffer
 
     except exceptions.UserQuit:
-        logger.exception('user quit')
+        logger.warning('user quit')
+        save_hydra()
         raise
     except Exception:
         logger.exception('whoops 🙀')
@@ -99,14 +100,6 @@ def process_draw():
     while True:
         grid = queue.get()
         display.draw(grid)
-
-
-@asyncio.coroutine
-def persist_hydra():
-
-    while True:
-        yield from asyncio.sleep(5)
-        save_hydra()
 
 
 def async_main(args):
