@@ -41,7 +41,7 @@ class Hydra():
     p: float = 0.5
     q: float = 0.5
 
-    modes: Dict[Modes, bool] = field(default_factory=lambda: {Modes.PLASMA: None})
+    modes: Dict[Modes, bool] = field(default_factory=lambda: {Modes.PLASMA3: None, Modes.PUNYTY: None})
     shutdown: bool = False
     last_update: float = 0
 

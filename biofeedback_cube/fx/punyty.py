@@ -58,4 +58,6 @@ def punyty(grid, t):
     grid_w = grid.shape[1]
     target_w = target_array.shape[1]
     xi = np.linspace(0, target_w, grid_w, endpoint=False, dtype=np.int32)
-    grid[:, :] = target_array[:, xi]
+    dst = target_array[:, xi]
+    mask = dst > 0
+    grid[mask] = dst[mask]
