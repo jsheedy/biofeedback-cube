@@ -6,7 +6,9 @@ from punyty.objects import Cube
 from punyty.renderers import ArrayRenderer
 from punyty.scene import Scene
 
-from biofeedback_cube.hydra import hydra
+from ..hydra import hydra
+from ..utils import sin, cos
+
 
 scene = Scene()
 cube = Cube(color=Vector3(1, 0.8, 0.7), position=Vector3(-.35, 0, 1.3))
@@ -50,7 +52,7 @@ def punyty(grid, t):
         cube.color = Vector3(hydra.a, hydra.b, hydra.c)
     else:
         cube.rotate(Vector3(math.sin(.9*t), math.sin(0.63*t), math.cos(0.85*t)))
-        color = Vector3(math.sin(.1*t + 1), .1 + math.sin(0.08*t), math.cos(0.1515*t))
+        color = Vector3(sin(.1*t + 1), .1 + sin(0.08*t), cos(0.1515*t))
         cube.color = color
 
     renderer.render(scene)
