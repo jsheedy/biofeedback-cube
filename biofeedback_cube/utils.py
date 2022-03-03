@@ -3,8 +3,13 @@ import os
 
 import numpy as np
 
+from .config import HEIGHT, WIDTH
+
 
 logger = logging.getLogger(__name__)
+yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
+yy = yy.astype(np.float32)
+xx = xx.astype(np.float32)
 
 
 def bytes_to_str(b1, b2):

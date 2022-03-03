@@ -3,9 +3,7 @@ import numpy as np
 from ..config import HEIGHT, WIDTH
 from ..hydra import hydra
 from ..palettes import palettes, cmap
-from ..utils import sin, index_dict
-
-yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
+from ..utils import sin, index_dict, xx, yy
 
 
 def plasma3(grid, t):

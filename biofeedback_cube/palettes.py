@@ -15,7 +15,7 @@ class Palette:
         g = [np.interp(x, xp, gp) for x in range(256)]
         b = [np.interp(x, xp, bp) for x in range(256)]
 
-        self.lut = np.array([r, g, b], dtype=np.float64).T
+        self.lut = np.array([r, g, b], dtype=np.float32).T
 
     def __len__(self):
         return len(self.lut)
@@ -98,6 +98,16 @@ palettes = {
         [1, 102, 94],
         [0, 60, 48]
     ], dtype=np.float32) / 255),
+
+    # first handmade palette for plasma
+    'plasma2': Palette(np.array([
+        [0.0, 0.9, 1.0],
+        [1.0, 0.9, 0.75],
+        [1.0, 0.9, 0.75],
+        [0.5, 0.1, 0.3],
+        [0.5, 0.1, 0.3],
+        [0.2, 0.7, 0.4],
+    ], dtype=np.float32)),
 }
 
 

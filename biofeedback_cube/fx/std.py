@@ -4,11 +4,11 @@ import random
 import numpy as np
 from scipy.signal import sawtooth
 
-from biofeedback_cube.config import HEIGHT, WIDTH
-from biofeedback_cube.hydra import hydra
-from biofeedback_cube.utils import sin, cos
+from ..config import HEIGHT, WIDTH
+from ..hydra import hydra
+from ..palettes import palettes, cmap
+from ..utils import sin, cos, index_dict, xx, yy
 
-yy, xx = np.mgrid[0:1:complex(0, HEIGHT), 0:1:complex(0, WIDTH)]
 
 operators = (
     np.add,
@@ -39,11 +39,13 @@ def circle(grid, t, color=(.7, .4, .2), weight=1.0):
     color = (hydra.a, hydra.b, hydra.c)
     mask = ((xx - x)**2 + (yy - y)**2) < radius
 
-    grid[mask, :] = weight * np.array(color)
+    grid[mask, :] = weight * np.array(color, dtype=np.float32)
 
 
 def tent(grid, t, operator=np.add):
     """ similar to a circle but like a circus tent """
+    palette = index_dict(palettes, hydra.a)
+
     r = 5 * hydra.f
     f = 10.0 * hydra.g
 
@@ -51,29 +53,8 @@ def tent(grid, t, operator=np.add):
     x = (sawtooth(f*t, width=0.5) + 1) / 2
 
     tent = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
-    # mask = tent > 0
-    r, g, b = hydra.a, hydra.b, hydra.c
-
-    grid[:, :, 0] = r * tent
-    grid[:, :, 1] = g * tent
-    grid[:, :, 2] = b * tent
-    # grid[mask, 0] = r * tent[mask]
-    # grid[mask, 1] = g * tent[mask]
-    # grid[mask, 2] = b * tent[mask]
-
-
-def cmap(x):
-    xp = [0.0, 0.66, 0.66, 0.78, 0.78, 0.82, 0.82, 1.0]
-
-    rp = [0.0, 0.00, 1.00, 1.00, 0.5, 0.5, 0.2, 0.2]
-    gp = [0.9, 0.90, 0.90, 0.90, 0.1, 0.1, 0.7, 0.7]
-    bp = [1.0, 1.00, 0.75, 0.75, 0.3, 0.3, 0.4, 0.4]
-
-    r = np.interp(x, xp, rp)
-    g = np.interp(x, xp, gp)
-    b = np.interp(x, xp, bp)
-
-    return r, g, b
+    mask = tent > 0
+    grid[mask] = cmap(palette, tent)[mask]
 
 
 def clear(grid, rgb):
@@ -103,10 +84,7 @@ def plasma2(grid, t):
         + np.sin(10 * xx**2 * yy**2 + .34*tau)
     )
 
-    r, g, b = cmap(field)
-    grid[:, :, 0] = r
-    grid[:, :, 1] = g
-    grid[:, :, 2] = b
+    grid[:, :] = cmap(palettes['plasma2'], field)
 
 
 def strobe(grid, t):

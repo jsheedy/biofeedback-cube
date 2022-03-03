@@ -21,7 +21,7 @@ def get_target_array(grid):
 
     h, w, c = grid.shape
     s = max((h, w))
-    ta = np.zeros((s, s, c))
+    ta = np.zeros((s, s, c), dtype=np.float32)
     cache['target_array'] = ta
     return ta
 
@@ -49,7 +49,7 @@ def punyty(grid, t):
         cube.rotate(Vector3(-3+hydra.a*6, -3+hydra.b*6, -3+hydra.c*6))
         cube.color = Vector3(hydra.a, hydra.b, hydra.c)
     else:
-        cube.rotate(Vector3(math.sin(.2*t), math.sin(0.23*t), math.cos(0.25*t)))
+        cube.rotate(Vector3(math.sin(.9*t), math.sin(0.63*t), math.cos(0.85*t)))
         color = Vector3(math.sin(.1*t), math.sin(0.08*t), math.cos(0.1515*t))
         cube.color = color
 
@@ -58,4 +58,4 @@ def punyty(grid, t):
     grid_w = grid.shape[1]
     target_w = target_array.shape[1]
     xi = np.linspace(0, target_w, grid_w, endpoint=False, dtype=np.int32)
-    grid[:, :, :] = target_array[:, xi, :]
+    grid[:, :] = target_array[:, xi]
