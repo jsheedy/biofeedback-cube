@@ -1,3 +1,7 @@
+"""
+https://lodev.org/cgtutor/fire.html
+"""
+
 from biofeedback_cube.config import WIDTH, HEIGHT
 from biofeedback_cube.hydra import hydra
 

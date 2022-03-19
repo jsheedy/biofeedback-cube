@@ -27,34 +27,23 @@ def early_fire(grid, t):
     grid[row::4, :, 2] = 0.0
 
 
-def circle(grid, t, color=(.7, .4, .2), weight=1.0):
-    radius = hydra.f * 0.2
-    if hydra.fresh(t):
-        y = 1-hydra.y
-        x = 1-hydra.x
-    else:
-        y = 0.25 + 0.5*sin(0.5*t)
-        x = 0.25 + 0.5*cos(0.501*t)
-
-    color = (hydra.a, hydra.b, hydra.c)
-    mask = ((xx - x)**2 + (yy - y)**2) < radius
-
-    grid[mask, :] = weight * np.array(color, dtype=np.float32)
-
-
-def tent(grid, t, operator=np.add):
-    """ similar to a circle but like a circus tent """
+def cone(grid, t, operator=np.add):
+    """ cone shape """
     palette = index_dict(palettes, hydra.a)
 
     r = 5 * hydra.f
     f = 10.0 * hydra.g
 
-    y = 0.5
-    x = (sawtooth(f*t, width=0.5) + 1) / 2
+    if hydra.fresh(t):
+        y = hydra.y
+        x = hydra.x
+    else:
+        y = 0.5
+        x = (sawtooth(f*t, width=0.5) + 1) / 2
 
-    tent = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
-    mask = tent > 0
-    grid[mask] = cmap(palette, tent)[mask]
+    cone = np.clip(1-np.sqrt((r*(xx-x))**2 + (r*(yy-y))**2), 0, 1)
+    mask = cone > 0
+    grid[mask] = cmap(palette, cone)[mask]
 
 
 def clear(grid, rgb):

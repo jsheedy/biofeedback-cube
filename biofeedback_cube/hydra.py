@@ -1,3 +1,4 @@
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Dict
 
@@ -42,6 +43,8 @@ class Hydra():
     q: float = 0.5
 
     modes: Dict[Modes, bool] = field(default_factory=lambda: {Modes.PLASMA3: None, Modes.PUNYTY: None})
+    midi_notes: deque = field(default_factory=deque)
+
     shutdown: bool = False
     last_update: float = 0
 
@@ -55,6 +58,14 @@ class Hydra():
         dt = t - self.last_update
         return dt < .10
 
+    def zero(self):
+        for char in map(chr, range(97, 97 + 26)):
+            try:
+                setattr(self, char, 0.5)
+            except AttributeError:
+                pass
+        self.e = 1.0  # brightness
+        self.h = 0.0  # rotation
 
 def save_hydra():
     hydra.shutdown = False

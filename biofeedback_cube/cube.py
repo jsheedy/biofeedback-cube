@@ -1,10 +1,10 @@
 import argparse
 import asyncio
-import importlib
 import logging
-from multiprocessing import Process, Queue
+from queue import Queue
 import signal
 import sys
+import threading
 import time
 import traceback
 
@@ -21,11 +21,10 @@ from biofeedback_cube.hydra import hydra, save_hydra
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SAMPLING_DELAY = 1/20
-
 t0 = time.time()
+t1 = time.time()
 
-queue = Queue()
+queue = Queue(maxsize=2)
 
 buff = buffer.Buffer(config.HEIGHT, config.WIDTH)
 
@@ -35,7 +34,6 @@ def parse_args():
     parser.add_argument("--host", default="0.0.0.0", help="The ip to listen on")
     parser.add_argument("--port", type=int, default=37339, help="The port to listen on")
     parser.add_argument("--simulator", action='store_true', help="run simulator")
-    parser.add_argument("--reload", action='store_true', help="live coding")
     parser.add_argument("--verbose", action='store_true', help="verbose")
     args = parser.parse_args()
     return args
@@ -57,14 +55,23 @@ def main_loop(coros):
             sys.exit(-1)
 
 
-def render(reload=False):
+def fps(t):
+    global t1
+    NFRAMES = 200
+    if buff.frame_number % NFRAMES == 1:
+        delta = t - t1
+        t1 = t
+        fps = NFRAMES / delta
+        logger.debug(f'FPS: {fps:.2f}')
+
+
+def render():
     t = time.time() - t0
+
+    if logger.level == logging.DEBUG:
+        fps(t)
+
     try:
-        if reload:
-            # global buff
-            # importlib.reload(buffer)
-            from biofeedback_cube.fx import larson
-            importlib.reload(larson)
         buff.update(t)
         return buff.buffer
 
@@ -78,48 +85,50 @@ def render(reload=False):
 
 
 @asyncio.coroutine
-def async_render(reload=False):
+def async_render():
     while True:
         if hydra.shutdown:
             logger.warning('hydra shutdown, exiting render loop')
             break
-        grid = render(reload=reload)
-        yield from asyncio.sleep(0.010)
+        grid = render()
+        # grid = grid[::-1, ::-1, ...]
         brightness = hydra.e
         display.draw(grid, brightness=brightness)
         yield from asyncio.sleep(0.010)
 
 
-def process_render(rows, cols, reload=False):
-    while True:
-        grid = render(reload=reload)
-        queue.put(grid)
-
-
-def process_draw():
-    while True:
-        grid = queue.get()
-        display.draw(grid)
-
-
 def async_main(args):
     coros = (
-        async_render(reload=args.reload),
-        osc.server(args.host, args.port, hydra),
+        async_render(),
+        osc.async_server(args.host, args.port),
     )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main_loop(coros))
 
 
-def process_main(rows, cols, reload):
+def thread_render():
+    while True:
+        grid = render()
+        queue.put(grid.copy())
 
-    p1 = Process(target=process_render, args=(rows, cols), kwargs={'reload': reload})
-    p2 = Process(target=process_draw)
-    p1.start()
-    p2.start()
-    p1.join()
-    p2.join()
+
+def thread_draw():
+    while True:
+        logger.debug(f'{queue.qsize()}')
+        grid = queue.get()
+        display.draw(grid)
+
+
+def thread_main(args):
+
+    t1 = threading.Thread(target=thread_render, daemon=True)
+    t2 = threading.Thread(target=osc.server, args=(args.host, args.port), daemon=True)
+
+    t1.start()
+    t2.start()
+
+    thread_draw()
 
 
 def sigterm_handler(signum, frame):
@@ -132,13 +141,14 @@ def main():
     args = parse_args()
     signal.signal(signal.SIGTERM, sigterm_handler)
     if args.verbose:
-        logger = logging.getLogger()
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
-        logger = logging.getLogger(__name__)
 
+    osc.init()
     display.init(config.HEIGHT, config.WIDTH, sdl=args.simulator)
 
-    # process_main(ROWS, COLS, args.reload)
+    # thread_main(args)
     async_main(args)
 
 

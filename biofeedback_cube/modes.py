@@ -3,7 +3,6 @@ from enum import Enum
 
 class Modes(Enum):
     IMAGE = 0
-    CIRCLE = 1
     TEST_GRID = 2
     PLASMA = 3
     CATJAM = 4
@@ -15,5 +14,6 @@ class Modes(Enum):
     PLASMA3 = 10
     EARLY_FIRE = 11
     FIRE = 12
-    TENT = 13
+    CONE = 13
     STROBE = 14
+    MIDI = 15

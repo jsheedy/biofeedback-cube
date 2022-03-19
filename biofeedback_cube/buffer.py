@@ -8,6 +8,7 @@ from biofeedback_cube.fx.cat_jam import jam
 from biofeedback_cube.fx.fire import fire
 from biofeedback_cube.fx.image import image
 from biofeedback_cube.fx.larson import larson
+from biofeedback_cube.fx.midi import midi
 from biofeedback_cube.fx.palette import palette
 from biofeedback_cube.fx.plasma3 import plasma3
 from biofeedback_cube.fx.punyty import punyty
@@ -18,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 MODE_MAP = {
     Modes.IMAGE: image,
-    Modes.CIRCLE: std.circle,
-    Modes.TENT: std.tent,
+    Modes.CONE: std.cone,
     Modes.TEST_GRID: std.test_grid,
     Modes.STARFIELD: std.starfield,
     Modes.PUNYTY: punyty,
@@ -31,7 +31,8 @@ MODE_MAP = {
     Modes.FIRE: fire,
     Modes.PALETTE: palette,
     Modes.LARSON: larson,
-    Modes.CATJAM: jam
+    Modes.CATJAM: jam,
+    Modes.MIDI: midi
 }
 
 
@@ -46,7 +47,7 @@ class Buffer():
     """
 
     def __init__(self, height, width):
-
+        self.frame_number = 0
         self.height = height
         self.width = width
         self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float32)
@@ -79,7 +80,7 @@ class Buffer():
         )[:, ::8, :]
 
     def update(self, t):
-
+        self.frame_number += 1
         self.fade(hydra.d)
         for mode in hydra.modes:
             MODE_MAP[mode](self.grid, t)

@@ -18,8 +18,7 @@ def open_images():
     logger.info(f'opening {path}')
     with imageio.read(path) as f:
         for im in f.iter_data():
-            flipped_im = im[::-1, ::-1, :]
-            images.append(flipped_im.astype(np.float32) / 255)
+            images.append(im.astype(np.float32) / 255)
         meta['length'] = f.get_length()
         meta['duration'] = f.get_meta_data()['duration']
         meta['total_time'] = (meta['length'] * meta['duration']) / 1000

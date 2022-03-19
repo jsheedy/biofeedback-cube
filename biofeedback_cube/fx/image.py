@@ -10,20 +10,19 @@ from ..hydra import hydra
 from ..utils import sin
 
 logger = logging.getLogger(__name__)
-
 images = []
 
 
 def open_images():
     path = Path(os.path.dirname(__file__)) / Path('../../assets')
-    for p in path.glob('*.png'):
+    for p in path.rglob('*.png'):
         logger.info(f'opening {p}')
         images.append(open_image(p))
 
 
 def open_image(path):
     im = imageio.imread(path)
-    return im[::-1, ::-1, :].astype(np.float32) / 255
+    return im.astype(np.float32) / 255
 
 
 def image(grid, t):
@@ -34,8 +33,8 @@ def image(grid, t):
 
     h, w = rgba.shape[:2]
 
-    x = 2 * hydra.x - 1
-    y = 2 * hydra.y - 1
+    x = -2 * hydra.x + 1
+    y = -2 * hydra.y + 1
 
     if hydra.i >= .5:
         scale = hydra.g * 2

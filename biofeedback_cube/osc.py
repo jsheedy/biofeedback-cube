@@ -3,15 +3,17 @@ from dataclasses import fields
 import logging
 
 from pythonosc import dispatcher
-from pythonosc.osc_server import AsyncIOOSCUDPServer
+from pythonosc.osc_server import AsyncIOOSCUDPServer, ThreadingOSCUDPServer
 from pythonosc import udp_client
 
 from .modes import Modes
+from .hydra import hydra
 
 
 logger = logging.getLogger(__name__)
 
 clients = set()
+dsp = dispatcher.Dispatcher()
 
 
 def update_client(client, name, value):
@@ -73,6 +75,10 @@ def hydra_accxyz_handler(_addr, args, x, y, z, **kwargs):
     hydra.xyz_z = z
 
 
+def midi_note_handler(_addr, args, note, velocity, **kwargs):
+    hydra.midi_notes.append(note)
+
+
 def mode_handler(addr, args, value, **kwargs):
     hydra = args[0]
 
@@ -102,9 +108,7 @@ def shutdown_handler(addr, args, value, **kwargs):
     hydra.shutdown = True
 
 
-@asyncio.coroutine
-def server(host, port, hydra):
-
+def init():
     addr_map = {
         '/hydra/a': hydra_handler,
         '/hydra/b': hydra_handler,
@@ -121,15 +125,13 @@ def server(host, port, hydra):
         '/hydra/m': hydra_handler,
         '/hydra/xy': hydra_xy_handler,
         '/accxyz': hydra_accxyz_handler,
+        '/midi/note': midi_note_handler,
         '/mode/*': mode_handler,
         '/shutdown': shutdown_handler,
         '/ping': add_client,
         '*': lambda *args: logger.debug(str(args))
     }
 
-    dsp = dispatcher.Dispatcher()
-
-    logger.info(f'listening on {host}:{port} for ')
     for pattern, handler in addr_map.items():
         logger.info(f'{pattern}')
         needs_reply_address = handler in (
@@ -138,9 +140,20 @@ def server(host, port, hydra):
             hydra_xy_handler,
             hydra_handler
         )
-        dsp.map(pattern, handler, hydra, needs_reply_address=needs_reply_address)
+        dsp.map(pattern, handler, hydra,
+                needs_reply_address=needs_reply_address)
 
+
+@asyncio.coroutine
+def async_server(host, port):
+    logger.info(f'listening on {host}:{port}')
     loop = asyncio.get_event_loop()
     server = AsyncIOOSCUDPServer((host, port), dsp, loop)
     transport, protocol = yield from server.create_serve_endpoint()
     yield from asyncio.sleep(86400*7)
+
+
+def server(host, port):
+    logger.info(f'listening on {host}:{port}')
+    server = ThreadingOSCUDPServer((host, port), dsp)
+    server.serve_forever()

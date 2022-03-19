@@ -48,6 +48,7 @@ class SDLDisplay():
         events = sdl2.ext.get_events()
         for event in events:
             if event.type == sdl2.SDL_KEYDOWN:
+                logger.info(f'keydown {event.key.keysym.sym}')
                 if event.key.keysym.sym == 32:  # space
                     mode = next(self.mode_iter)
                     hydra.modes = {mode: True}
@@ -58,6 +59,8 @@ class SDLDisplay():
                     pass
                 elif event.key.keysym.sym == 113:  # q
                     self.state.running = False
+                elif event.key.keysym.sym == 48:  # 0
+                    hydra.zero()
 
                 self.keys_down.clear()
                 self.keys_down.add(event.key.keysym.sym)
@@ -88,10 +91,10 @@ class SDLDisplay():
             raise exceptions.UserQuit
 
         rgb = (grid * brightness * 255).astype(np.uint32)
-        r, g, b = rgb[::-1, ::-1, 1], rgb[::-1, ::-1, 2], rgb[::-1, ::-1, 3]
+        r, g, b = rgb[:, :, 1], rgb[:, :, 2], rgb[:, :, 3]
 
         # convert to SDL color 32bit BGRA format
         x = 0xff000000 | (r << 16) | (g << 8) | b
 
-        self.pixels[:, :] = x[self.yy, self.xx]
+        self.pixels[...] = x[self.yy, self.xx]
         self.window.refresh()
