@@ -1,19 +1,21 @@
 import logging
+import time
 
 import numpy as np
 from scipy.ndimage import filters, rotate
 
-from biofeedback_cube.fx import std
-from biofeedback_cube.fx.cat_jam import jam
-from biofeedback_cube.fx.fire import fire
-from biofeedback_cube.fx.image import image
-from biofeedback_cube.fx.larson import larson
-from biofeedback_cube.fx.midi import midi
-from biofeedback_cube.fx.palette import palette
-from biofeedback_cube.fx.plasma3 import plasma3
-from biofeedback_cube.fx.punyty import punyty
-from biofeedback_cube.hydra import hydra
-from biofeedback_cube.modes import Modes
+from .config import HEIGHT, WIDTH
+from .fx import std
+from .fx.cat_jam import jam
+from .fx.fire import fire
+from .fx.image import image
+from .fx.larson import larson
+from .fx.midi import midi
+from .fx.palette import palette
+from .fx.plasma3 import plasma3
+from .fx.punyty import punyty
+from .hydra import hydra
+from .modes import Modes
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +53,22 @@ class Buffer():
         self.height = height
         self.width = width
         self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float32)
+        self.t0 = time.time()
+        self.t1 = time.time()
 
     @property
     def grid(self):
         """ grid is a view of the buffer with only 3 channels for color instead of 4 channels including
         the extra 0xff as described in the Buffer docstring. This is an easier canvas to draw upon """
         return self.buffer[:, :, 1:]
+
+    def fps(self):
+        NFRAMES = 200
+        if self.frame_number % NFRAMES == 1:
+            delta = self.t - self.t1
+            self.t1 = self.t
+            fps = NFRAMES / delta
+            logger.debug(f'FPS: {fps:.2f}')
 
     def fade(self, amt=0.8):
         log_amt = np.log10(1 + amt * (10 - 1))
@@ -79,9 +91,16 @@ class Buffer():
             mode='nearest'
         )[:, ::8, :]
 
-    def update(self, t):
+    def update(self):
+        self.t = time.time() - self.t0
         self.frame_number += 1
+
         self.fade(hydra.d)
         for mode in hydra.modes:
-            MODE_MAP[mode](self.grid, t)
+            MODE_MAP[mode](self.grid, self.t)
         self.rotate(hydra.h)
+
+        self.fps()
+
+
+buffer = Buffer(HEIGHT, WIDTH)

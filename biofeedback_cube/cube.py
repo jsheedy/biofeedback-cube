@@ -10,7 +10,7 @@ import traceback
 
 import uvloop
 
-from biofeedback_cube import buffer
+from biofeedback_cube.buffer import buffer
 from biofeedback_cube import config
 from biofeedback_cube import display
 from biofeedback_cube import exceptions
@@ -21,12 +21,7 @@ from biofeedback_cube.hydra import hydra, save_hydra
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-t0 = time.time()
-t1 = time.time()
-
 queue = Queue(maxsize=2)
-
-buff = buffer.Buffer(config.HEIGHT, config.WIDTH)
 
 
 def parse_args():
@@ -55,25 +50,10 @@ def main_loop(coros):
             sys.exit(-1)
 
 
-def fps(t):
-    global t1
-    NFRAMES = 200
-    if buff.frame_number % NFRAMES == 1:
-        delta = t - t1
-        t1 = t
-        fps = NFRAMES / delta
-        logger.debug(f'FPS: {fps:.2f}')
-
-
 def render():
-    t = time.time() - t0
-
-    if logger.level == logging.DEBUG:
-        fps(t)
-
     try:
-        buff.update(t)
-        return buff.buffer
+        buffer.update()
+        return buffer.buffer
 
     except exceptions.UserQuit:
         logger.warning('user quit')

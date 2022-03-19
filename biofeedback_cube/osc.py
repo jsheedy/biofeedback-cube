@@ -6,6 +6,7 @@ from pythonosc import dispatcher
 from pythonosc.osc_server import AsyncIOOSCUDPServer, ThreadingOSCUDPServer
 from pythonosc import udp_client
 
+from .buffer import buffer
 from .modes import Modes
 from .hydra import hydra
 
@@ -75,8 +76,8 @@ def hydra_accxyz_handler(_addr, args, x, y, z, **kwargs):
     hydra.xyz_z = z
 
 
-def midi_note_handler(_addr, args, note, velocity, **kwargs):
-    hydra.midi_notes.append(note)
+def midi_note_handler(_addr, args, channel, note, velocity, **kwargs):
+    hydra.midi_notes[channel].append((note, velocity, buffer.t))
 
 
 def mode_handler(addr, args, value, **kwargs):

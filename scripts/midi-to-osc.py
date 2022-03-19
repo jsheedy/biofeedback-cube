@@ -1,17 +1,24 @@
 #!/usr/bin/env python
 
+import time
+
 import mido
 from pythonosc import udp_client
 
 host = 'localhost'
-# host = '10.0.0.105'
 port = 37339
-client = udp_client.SimpleUDPClient(host, port, allow_broadcast=True)
 
-s = 'IAC Driver IAC Bus 2'
-# s = 'nanoKONTROL SLIDER/KNOB'
+HOSTS = [
+    '10.0.0.109',
+    '10.0.0.105'
+]
 
-print(f'opening {s}')
+CLIENTS = [udp_client.SimpleUDPClient(host, port, allow_broadcast=True) for host in HOSTS]
+
+PORTS = [
+    'IAC Driver IAC Bus 2',
+    'nanoKONTROL SLIDER/KNOB'
+]
 
 buttons = [
     23, 24, 25, 26, 27, 28, 29, 30, 31,
@@ -35,27 +42,32 @@ knobs = [
 ]
 
 
+def send_message(*args):
+    for client in CLIENTS:
+        client.send_message(*args)
+
+
 def send_button(message: mido.Message):
     i = message.control - 23
     x = (i % 5) + 1
     y = i // 5
-    client.send_message(f"/mode/{x}/{y}", 1.0)
+    send_message(f"/mode/{x}/{y}", 1.0)
 
 
 def send_slider(message: mido.Message):
     param = sliders[message.control]
-    client.send_message(f"/hydra/{param}", message.value / 127.0)
+    send_message(f"/hydra/{param}", message.value / 127.0)
 
 
 def send_note_on(message: mido.Message):
-    client.send_message("/midi/note", [message.note, message.velocity])
+    send_message("/midi/note", [message.channel, message.note, message.velocity])
 
 
 def send_knob(message: mido.Message):
     i = message.control - 23
     x = (i % 5) + 1
     y = i // 5
-    client.send_message(f"/mode/{x}/{y}", 1.0)
+    send_message(f"/mode/{x}/{y}", 1.0)
 
 
 def handle(message: mido.Message):
@@ -63,7 +75,7 @@ def handle(message: mido.Message):
     if message.type == 'sysex':
         return
 
-    if message.type == 'control_change':
+    if message.type == 'control_change' and message.channel == 0:  # nanokontrol
         if message.control in buttons:
             send_button(message)
 
@@ -77,7 +89,7 @@ def handle(message: mido.Message):
         send_note_on(message)
 
 
-with mido.open_input(s) as inport:
-    print(f'opened {s}')
-    for message in inport:
-        handle(message)
+if __name__ == '__main__':
+    ports = [mido.open_input(p, callback=handle) for p in PORTS]
+
+    time.sleep(10**6)
