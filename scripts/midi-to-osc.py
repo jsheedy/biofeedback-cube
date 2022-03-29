@@ -90,6 +90,11 @@ def handle(message: mido.Message):
 
 
 if __name__ == '__main__':
-    ports = [mido.open_input(p, callback=handle) for p in PORTS]
-
+    ports = []
+    for p in PORTS:
+        try:
+            mido.open_input(p, callback=handle)
+            print(f'opened port {p}')
+        except OSError:
+            print(f'unable to open port {p}')
     time.sleep(10**6)

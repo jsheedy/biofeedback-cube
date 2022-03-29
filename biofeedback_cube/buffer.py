@@ -1,16 +1,17 @@
+import importlib
 import logging
-import time
 
 import numpy as np
 from scipy.ndimage import filters, rotate
 
+from .state import clock
 from .config import HEIGHT, WIDTH
 from .fx import std
 from .fx.cat_jam import jam
 from .fx.fire import fire
 from .fx.image import image
 from .fx.larson import larson
-from .fx.midi import midi
+from .fx import midi
 from .fx.palette import palette
 from .fx.plasma3 import plasma3
 from .fx.punyty import punyty
@@ -34,7 +35,7 @@ MODE_MAP = {
     Modes.PALETTE: palette,
     Modes.LARSON: larson,
     Modes.CATJAM: jam,
-    Modes.MIDI: midi
+    Modes.MIDI: midi.midi
 }
 
 
@@ -50,8 +51,6 @@ class Buffer():
         self.height = height
         self.width = width
         self.buffer = np.zeros(shape=(height, width, 4), dtype=np.float32)
-        self.t0 = time.time()
-        self.t1 = time.time()
 
     @property
     def grid(self):
@@ -62,8 +61,8 @@ class Buffer():
     def fps(self):
         NFRAMES = 200
         if self.frame_number % NFRAMES == 1:
-            delta = self.t - self.t1
-            self.t1 = self.t
+            delta = clock.t - clock.t1
+            clock.t1 = clock.t
             fps = NFRAMES / delta
             logger.debug(f'FPS: {fps:.2f}')
 
@@ -89,12 +88,17 @@ class Buffer():
         )[:, ::8, :]
 
     def update(self):
-        self.t = time.time() - self.t0
+        # reload
+        # from .fx import midi
+        # importlib.reload(midi)
+        # MODE_MAP[Modes.MIDI] = midi.midi
+
+        clock.tick()
         self.frame_number += 1
 
         self.fade(hydra.d)
         for mode in hydra.modes:
-            MODE_MAP[mode](self.grid, self.t)
+            MODE_MAP[mode](self.grid, clock.t)
         self.rotate(hydra.h)
 
         self.fps()

@@ -5,7 +5,6 @@ from queue import Queue
 import signal
 import sys
 import threading
-import time
 import traceback
 
 import uvloop
@@ -70,8 +69,8 @@ def async_render():
         if hydra.shutdown:
             logger.warning('hydra shutdown, exiting render loop')
             break
+
         grid = render()
-        # grid = grid[::-1, ::-1, ...]
         brightness = hydra.e
         display.draw(grid, brightness=brightness)
         yield from asyncio.sleep(0.010)

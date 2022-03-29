@@ -37,11 +37,3 @@ This should result in a `cube` command.  Install the `systemd/cube.service` serv
 Set any environment variables in /etc/cube_environment.
 
 Logs at `sudo journalctl -u cube `
-
-## Power
-once pixels got enough voltage, rpi started displaying lightning bolt
-for an undervoltage condition and crashing.
-
-Disable USB buspower:
-https://stackoverflow.com/questions/59772765/how-to-turn-usb-port-power-on-and-off-in-raspberry-pi-4#:~:text=On%20a%20Raspberry%20PI%203B%2B,1%22%20to%20turn%20power%20on.
-sudo sh -c "echo 0 > /sys/devices/platform/soc/3f980000.usb/buspower"

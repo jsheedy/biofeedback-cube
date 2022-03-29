@@ -43,7 +43,6 @@ class Hydra():
     q: float = 0.5
 
     modes: Dict[Modes, bool] = field(default_factory=lambda: {Modes.PLASMA3: None, Modes.PUNYTY: None})
-    midi_notes: deque = field(default_factory=lambda: defaultdict(deque))
 
     shutdown: bool = False
     last_update: float = 0

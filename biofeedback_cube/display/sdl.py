@@ -30,7 +30,7 @@ class SDLDisplay():
         self.yy, self.xx = np.meshgrid(yc, xc)
 
         sdl2.ext.init()
-        self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(width, height))
+        self.window = sdl2.ext.Window('BIOFEEDBACK CUBE', size=(width, height), position=(0, 0))
         self.window.show()
         surface = self.window.get_surface()
         self.pixels = sdl2.ext.pixels2d(surface)

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import imageio
 import numpy as np
 from biofeedback_cube.fx.palette import palettes
@@ -6,7 +8,8 @@ w = 600
 h = 200
 
 
-for name, p in palettes.items():
+for name, palette in palettes.items():
+    p = palette.palette
     target = np.zeros((h, w, 3))
     print(name)
     x = np.arange(0, w)
