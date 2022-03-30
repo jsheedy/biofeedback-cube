@@ -22,21 +22,20 @@ objects = (
 cache = {}
 
 
-def get_target_array(grid):
-    if 'target_array' in cache:
-        return cache.get('target_array')
+def get_target_array(grid, cache_key='target_array'):
+    if cache_key in cache:
+        return cache.get(cache_key)
 
     h, w, c = grid.shape
     s = max((h, w))
     ta = np.zeros((s, s, c), dtype=np.float32)
-    cache['target_array'] = ta
+    cache[cache_key] = ta
     return ta
 
 
-def get_renderer(target_array):
-    renderer = cache.get('renderer')
-    if renderer:
-        return renderer
+def get_renderer(target_array, cache_key='renderer'):
+    if cache_key in cache:
+        return cache.get(cache_key)
 
     renderer = ArrayRenderer(
         target_array=target_array,
@@ -44,7 +43,7 @@ def get_renderer(target_array):
         draw_wireframe=False,
         draw_polys=True
     )
-    cache['renderer'] = renderer
+    cache[cache_key] = renderer
     return renderer
 
 
@@ -54,7 +53,7 @@ def punyty(grid, t):
 
     idx = int(hydra.g * (len(objects) - 1))
     obj = objects[idx]
-    obj.position = Vector3(6 * (hydra.x - .35), 6 * (0.5-hydra.y), 0.2 + 2 * hydra.a)
+    obj.position = Vector3(6 * (hydra.x - .35), 6 * (0.5-hydra.y), 0.05 + 20 * hydra.i)
     if hydra.f < 0.2:
         obj.rotate(Vector3(-3+hydra.a*6, -3+hydra.b*6, -3+hydra.c*6))
         obj.color = Vector3(hydra.a, hydra.b, hydra.c)
