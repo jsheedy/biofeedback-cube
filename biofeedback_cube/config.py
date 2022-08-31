@@ -6,4 +6,5 @@ WIDTH = 8
 ASPECT = 130.175 / 17
 
 HYDRA_STATE_FILE = '/srv/hydra/hydra.state'
+HYDRA_STATE_SAVE_DIR = '/srv/hydra/save'
 # HYDRA_STATE_FILE = f'{os.getenv("HOME")}/.hydra.state'

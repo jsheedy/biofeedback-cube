@@ -8,7 +8,7 @@ from pythonosc import udp_client
 
 from .modes import Modes
 from .state import midi_notes
-from .hydra import hydra
+from .hydra import hydra, load_saved_hydra, save_hydra
 
 
 logger = logging.getLogger(__name__)
@@ -109,6 +109,18 @@ def shutdown_handler(addr, args, value, **kwargs):
     hydra.shutdown = True
 
 
+def save_handler(addr, args, value, **kwargs):
+    save_hydra(default=False)
+
+
+def delete_handler(addr, args, value, **kwargs):
+    raise NotImplementedError
+
+
+def load_handler(addr, args, value, **kwargs):
+    load_saved_hydra(value)
+
+
 def init():
     addr_map = {
         '/hydra/a': hydra_handler,
@@ -129,6 +141,9 @@ def init():
         '/midi/note': midi_note_handler,
         '/mode/*': mode_handler,
         '/shutdown': shutdown_handler,
+        '/save': save_handler,
+        '/delete': delete_handler,
+        '/load': load_handler,
         '/ping': add_client,
         '*': lambda *args: logger.debug(str(args))
     }

@@ -1,18 +1,20 @@
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Dict
 
 import logging
 import pickle
 import time
 
-from .config import HYDRA_STATE_FILE
+from .config import HYDRA_STATE_FILE, HYDRA_STATE_SAVE_DIR
 from .modes import Modes
 
 
 logger = logging.getLogger(__name__)
 t0 = time.time()
-
+hydra = None
 
 @dataclass
 class Hydra():
@@ -67,20 +69,41 @@ class Hydra():
         self.h = 0.0  # rotation
 
 
-def save_hydra():
+def save_hydra(default=True):
+    if default is True:
+        fname = HYDRA_STATE_FILE
+    else:
+        dest_dir = Path(HYDRA_STATE_SAVE_DIR)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        name = f"cube-{datetime.now().isoformat(timespec='seconds')}.state"
+        fname = dest_dir / Path(name)
+
     hydra.shutdown = False
-    logger.info(f'dumping hydra state to {HYDRA_STATE_FILE}')
+    logger.info(f'dumping hydra state to {fname}')
     try:
-        with open(HYDRA_STATE_FILE, 'wb') as f:
+        with open(fname, 'wb') as f:
             pickle.dump(hydra, f, protocol=pickle.HIGHEST_PROTOCOL)
     except Exception:
-        logger.exception(f'unable to save {HYDRA_STATE_FILE}')
+        logger.exception(f'unable to save {fname}')
 
+def load_hydra(fname=None):
+    global hydra
+    if fname is None:
+        fname = HYDRA_STATE_FILE
 
-try:
-    with open(HYDRA_STATE_FILE, 'rb') as f:
-        hydra = pickle.load(f)
-        logger.warning(f'loading hydra state {hydra}')
-except Exception:
-    logger.exception(f'unable to initialize hydra with {HYDRA_STATE_FILE}')
-    hydra = Hydra()
+    try:
+        with open(fname, 'rb') as f:
+            hydra = pickle.load(f)
+            logger.warning(f'loading hydra state {hydra}')
+    except Exception:
+        logger.exception(f'unable to initialize hydra with {fname}')
+        hydra = Hydra()
+
+def load_saved_hydra(value):
+    states = list(Path(HYDRA_STATE_SAVE_DIR).glob('*.state'))
+    index = int(value * (len(states) - 1))
+    fname = states[index]
+    load_hydra(fname)
+
+load_hydra()
